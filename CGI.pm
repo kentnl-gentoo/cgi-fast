@@ -18,8 +18,8 @@ use Carp 'croak';
 # The most recent version and complete docs are available at:
 #   http://stein.cshl.org/WWW/software/CGI/
 
-$CGI::revision = '$Id: CGI.pm,v 1.49 2001/02/04 23:08:39 lstein Exp $';
-$CGI::VERSION='2.753';
+$CGI::revision = '$Id: CGI.pm,v 1.50 2001/07/26 21:19:19 lstein Exp $';
+$CGI::VERSION='2.76';
 
 # HARD-CODED LOCATION FOR FILE UPLOAD TEMPORARY FILES.
 # UNCOMMENT THIS ONLY IF YOU KNOW WHAT YOU'RE DOING.
@@ -550,7 +550,7 @@ sub parse_params {
     my($param,$value);
     foreach (@pairs) {
 	($param,$value) = split('=',$_,2);
-	next if $NO_UNDEF_PARAMS and not $value;
+	next if $NO_UNDEF_PARAMS and not defined $value;
 	$value = '' unless defined $value;
 	$param = unescape($param);
 	$value = unescape($value);
@@ -1038,7 +1038,7 @@ sub Dump {
 	}
 	push(@result,"</UL>");
     }
-    push(@result,"</UL>\n");
+    push(@result,"</UL>");
     return join("\n",@result);
 }
 END_OF_FUNC
@@ -1207,6 +1207,7 @@ sub header {
     foreach (@other) {
         next unless my($header,$value) = /([^\s=]+)=\"?(.+?)\"?$/;
 	($_ = $header) =~ s/^(\w)(.*)/$1 . lc ($2) . ': '.$self->unescapeHTML($value)/e;
+        $header = ucfirst($header);
     }
 
     $type ||= 'text/html' unless defined($type);
@@ -1235,7 +1236,7 @@ sub header {
     push(@header,"Date: " . expires(0,'http')) if $expires || $cookie || $nph;
     push(@header,"Pragma: no-cache") if $self->cache();
     push(@header,"Content-Disposition: attachment; filename=\"$attachment\"") if $attachment;
-    push(@header,@other);
+    push(@header,map {ucfirst $_} @other);
     push(@header,"Content-Type: $type") if $type ne '';
 
     my $header = join($CRLF,@header)."${CRLF}${CRLF}";
@@ -2104,7 +2105,7 @@ sub popup_menu {
 	$result .= "<option $selectit value=\"$value\">$label</option>\n";
     }
 
-    $result .= "</select>\n";
+    $result .= "</select>";
     return $result;
 }
 END_OF_FUNC
@@ -2157,7 +2158,7 @@ sub scrolling_list {
 	my($value)=$self->escapeHTML($_,1);
 	$result .= "<option $selectit value=\"$value\">$label</option>\n";
     }
-    $result .= "</select>\n";
+    $result .= "</select>";
     $self->register_parameter($name);
     return $result;
 }
@@ -3116,7 +3117,7 @@ sub new {
 
 	# BUG: IE 3.01 on the Macintosh uses just the boundary -- not
 	# the two extra hyphens.  We do a special case here on the user-agent!!!!
-	$boundary = "--$boundary" unless CGI::user_agent('MSIE\s+3\.0[12];\s*Mac');
+	$boundary = "--$boundary" unless CGI::user_agent('MSIE\s+3\.0[12];\s*Mac|DreamPassport');
 
     } else { # otherwise we find it ourselves
 	my($old);
@@ -6257,12 +6258,17 @@ mode, CGI.pm will output the necessary extra header information when
 the header() and redirect() methods are
 called.
 
-The Microsoft Internet Information Server requires NPH mode.  As of version
-2.30, CGI.pm will automatically detect when the script is running under IIS
-and put itself into this mode.  You do not need to do this manually, although
-it won't hurt anything if you do.
-
-There are a number of ways to put CGI.pm into NPH mode:
+The Microsoft Internet Information Server requires NPH mode.  As of
+version 2.30, CGI.pm will automatically detect when the script is
+running under IIS and put itself into this mode.  You do not need to
+do this manually, although it won't hurt anything if you do.  However,
+note that if you have applied Service Pack 6, much of the
+functionality of NPH scripts, including the ability to redirect while
+setting a cookie, b<do not work at all> on IIS without a special patch
+from Microsoft.  See
+http://support.microsoft.com/support/kb/articles/Q280/3/41.ASP:
+Non-Parsed Headers Stripped From CGI Applications That Have nph-
+Prefix in Name.
 
 =over 4
 
