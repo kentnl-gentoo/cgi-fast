@@ -18,8 +18,8 @@ use Carp 'croak';
 # The most recent version and complete docs are available at:
 #   http://stein.cshl.org/WWW/software/CGI/
 
-$CGI::revision = '$Id: CGI.pm,v 1.75 2002/10/16 17:48:37 lstein Exp $';
-$CGI::VERSION='2.89';
+$CGI::revision = '$Id: CGI.pm,v 1.85 2002/12/14 14:03:42 lstein Exp $';
+$CGI::VERSION='2.90';
 
 # HARD-CODED LOCATION FOR FILE UPLOAD TEMPORARY FILES.
 # UNCOMMENT THIS ONLY IF YOU KNOW WHAT YOU'RE DOING.
@@ -72,6 +72,16 @@ sub initialize_globals {
     #    1) use CGI qw(:private_tempfiles)
     #    2) CGI::private_tempfiles(1);
     $PRIVATE_TEMPFILES = 0;
+
+    # Set this to 1 to cause files uploaded in multipart documents
+    # to be closed, instead of caching the file handle
+    # or:
+    #    1) use CGI qw(:close_upload_files)
+    #    2) $CGI::close_upload_files(1);
+    # Uploads with many files run out of file handles.
+    # Also, for performance, since the file is already on disk,
+    # it can just be renamed, instead of read and written.
+    $CLOSE_UPLOAD_FILES = 0;
 
     # Set this to a positive value to limit the size of a POSTing
     # to a certain number of bytes:
@@ -150,7 +160,8 @@ $AutoloadClass = $DefaultClass unless defined $CGI::AutoloadClass;
 # on the paltform.
 $SL = {
        UNIX=>'/', OS2=>'\\', EPOC=>'/',
-       WINDOWS=>'\\', DOS=>'\\', MACINTOSH=>':', VMS=>'/'
+       WINDOWS=>'\\', DOS=>'\\', MACINTOSH=>':', VMS=>'/',
+       CYGWIN=>'/',
     }->{$OS};
 
 # This no longer seems to be necessary
@@ -166,9 +177,9 @@ if (exists $ENV{'GATEWAY_INTERFACE'}
     $| = 1;
     require mod_perl;
     if ($mod_perl::VERSION >= 1.99) {
-      require Apache::compat;
+      eval "require Apache::compat";
     } else {
-      require Apache;
+      eval "require Apache";
     }
   }
 
@@ -708,6 +719,7 @@ sub _setup_symbols {
 	$XHTML=0,                next if /^[:-]no_?xhtml$/;
 	$USE_PARAM_SEMICOLONS=0, next if /^[:-]oldstyle_urls$/;
 	$PRIVATE_TEMPFILES++,    next if /^[:-]private_tempfiles$/;
+    $CLOSE_UPLOAD_FILES++,   next if /^[:-]close_upload_files$/;
 	$EXPORT{$_}++,           next if /^[:-]any$/;
 	$compile++,              next if /^[:-]compile$/;
 	$NO_UNDEF_PARAMS++,      next if /^[:-]no_undef_params$/;
@@ -782,12 +794,17 @@ END_OF_FUNC
 ####
 sub delete {
     my($self,@p) = self_or_default(@_);
-    my(@names) = rearrange([NAME],@p);
-    for my $name (@names) {
-      CORE::delete $self->{$name};
-      CORE::delete $self->{'.fieldnames'}->{$name};
-      @{$self->{'.parameters'}}=grep($_ ne $name,$self->param());
+    my($name) = rearrange([NAME],@p);
+    my @to_delete = ref($name) eq 'ARRAY' ? @$name : ($name);
+    my %to_delete;
+    foreach my $name (@to_delete)
+    {
+        CORE::delete $self->{$name};
+        CORE::delete $self->{'.fieldnames'}->{$name};
+        $to_delete{$name}++;
     }
+    @{$self->{'.parameters'}}=grep { !exists($to_delete{$_}) } $self->param();
+    return wantarray ? () : undef;
 }
 END_OF_FUNC
 
@@ -1229,11 +1246,11 @@ sub header {
 
     return undef if $self->{'.header_printed'}++ and $HEADERS_ONCE;
 
-    my($type,$status,$cookie,$target,$expires,$nph,$charset,$attachment,@other) = 
+    my($type,$status,$cookie,$target,$expires,$nph,$charset,$attachment,$p3p,@other) = 
 	rearrange([['TYPE','CONTENT_TYPE','CONTENT-TYPE'],
 			    'STATUS',['COOKIE','COOKIES'],'TARGET',
                             'EXPIRES','NPH','CHARSET',
-                            'ATTACHMENT'],@p);
+                            'ATTACHMENT','P3P'],@p);
 
     $nph     ||= $NPH;
     if (defined $charset) {
@@ -1246,12 +1263,11 @@ sub header {
     # need to fix it up a little.
     foreach (@other) {
         next unless my($header,$value) = /([^\s=]+)=\"?(.+?)\"?$/;
-	($_ = $header) =~ s/^(\w)(.*)/$1 . lc ($2) . ': '.$self->unescapeHTML($value)/e;
-        $header = ucfirst($header);
+        ($_ = $header) =~ s/^(\w)(.*)/"\u$1\L$2" . ': '.$self->unescapeHTML($value)/e;
     }
 
     $type ||= 'text/html' unless defined($type);
-    $type .= "; charset=$charset" if $type ne '' and $type =~ m!^text/! and $type !~ /\bcharset\b/;
+    $type .= "; charset=$charset" if $type ne '' and $type =~ m!^text/! and $type !~ /\bcharset\b/ and $charset ne '';
 
     # Maybe future compatibility.  Maybe not.
     my $protocol = $ENV{SERVER_PROTOCOL} || 'HTTP/1.0';
@@ -1260,6 +1276,10 @@ sub header {
 
     push(@header,"Status: $status") if $status;
     push(@header,"Window-Target: $target") if $target;
+    if ($p3p) {
+       $p3p = join ' ',@$p3p if ref($p3p) eq 'ARRAY';
+       push(@header,qq(P3P: policyref="/w3c/p3p.xml" CP="$p3p"));
+    }
     # push all the cookies -- there may be several
     if ($cookie) {
 	my(@cookie) = ref($cookie) && ref($cookie) eq 'ARRAY' ? @{$cookie} : $cookie;
@@ -1324,7 +1344,7 @@ sub redirect {
     unshift(@o,'-Target'=>$target) if $target;
     unshift(@o,'-Cookie'=>$cookie) if $cookie;
     unshift(@o,'-Type'=>'');
-    return $self->header(@o);
+    return $self->header(map {$self->unescapeHTML($_)} @o);
 }
 END_OF_FUNC
 
@@ -1361,7 +1381,7 @@ sub start_html {
     # while the author needs to be escaped as a URL
     $title = $self->escapeHTML($title || 'Untitled Document');
     $author = $self->escape($author);
-    $lang ||= 'en-US';
+    $lang = 'en-US' unless defined $lang;
     my(@result,$xml_dtd);
     if ($dtd) {
         if (defined(ref($dtd)) and (ref($dtd) eq 'ARRAY')) {
@@ -1383,7 +1403,8 @@ sub start_html {
         push(@result,qq(<!DOCTYPE html\n\tPUBLIC "$dtd">));
     }
     push(@result,$XHTML ? qq(<html xmlns="http://www.w3.org/1999/xhtml" lang="$lang" xml:lang="$lang"><head><title>$title</title>)
-                        : qq(<html lang="$lang"><head><title>$title</title>));
+                        : ($lang ? qq(<html lang="$lang">) : "<html>") 
+	                  . "<head><title>$title</title>");
 	if (defined $author) {
     push(@result,$XHTML ? "<link rev=\"made\" href=\"mailto:$author\" />"
 								: "<link rev=\"made\" href=\"mailto:$author\">");
@@ -1432,14 +1453,15 @@ sub _style {
     my $cdata_end   = $XHTML ? "\n/* ]]> */-->\n" : " -->\n";
 
     if (ref($style)) {
-     my($src,$code,$stype,@other) =
-         rearrange([SRC,CODE,TYPE],
+     my($src,$code,$verbatim,$stype,@other) =
+         rearrange([SRC,CODE,VERBATIM,TYPE],
                     '-foo'=>'bar', # a trick to allow the '-' to be omitted
                     ref($style) eq 'ARRAY' ? @$style : %$style);
      $type = $stype if $stype;
+     
      if (ref($src) eq "ARRAY") # Check to see if the $src variable is an array reference
-     { # If it is, push a LINK tag for each one.
-       foreach $src (@$src)
+     { # If it is, push a LINK tag for each one
+         foreach $src (@$src)
        {
          push(@result,$XHTML ? qq(<link rel="stylesheet" type="$type" href="$src" />)
                              : qq(<link rel="stylesheet" type="$type" href="$src">)) if $src;
@@ -1451,7 +1473,10 @@ sub _style {
                            : qq(<link rel="stylesheet" type="$type" href="$src">)
             ) if $src;
       }
-     push(@result,style({'type'=>$type},"$cdata_start\n$code\n$cdata_end")) if $code;
+      if ($verbatim) {
+         push(@result, "<style type=\"text/css\">\n$verbatim\n</style>");
+    }      
+      push(@result,style({'type'=>$type},"$cdata_start\n$code\n$cdata_end")) if $code;
     } else {
      push(@result,style({'type'=>$type},"$cdata_start\n$style\n$cdata_end"));
     }
@@ -1604,8 +1629,8 @@ sub endform {
     if ( $NOSTICKY ) {
     return wantarray ? ("</form>") : "\n</form>";
     } else {
-    return wantarray ? ($self->get_fields,"</form>") : 
-                        $self->get_fields ."\n</form>";
+    return wantarray ? (("<div>",$self->get_fields,"</div>","</form>") : 
+                        "<div>".$self->get_fields ."</div>\n</form>";
     }
 }
 END_OF_FUNC
@@ -1950,6 +1975,8 @@ sub checkbox_group {
     $self->register_parameter($name);
     return wantarray ? @elements : join(' ',@elements)            
         unless defined($columns) || defined($rows);
+    $rows = 1 if $rows && $rows < 1;
+    $cols = 1 if $cols && $cols < 1;
     return _tableize($rows,$columns,$rowheaders,$colheaders,@elements);
 }
 END_OF_FUNC
@@ -2900,6 +2927,17 @@ sub private_tempfiles {
     return $CGI::PRIVATE_TEMPFILES;
 }
 END_OF_FUNC
+#### Method: close_upload_files
+# Set or return the close_upload_files global flag
+####
+'close_upload_files' => <<'END_OF_FUNC',
+sub close_upload_files {
+    my ($self,$param) = self_or_CGI(@_);
+    $CGI::CLOSE_UPLOAD_FILES = $param if defined($param);
+    return $CGI::CLOSE_UPLOAD_FILES;
+}
+END_OF_FUNC
+
 
 #### Method: default_dtd
 # Set or return the default_dtd global
@@ -3007,13 +3045,17 @@ sub read_multipart {
 
 	# Bug:  Netscape doesn't escape quotation marks in file names!!!
 	my($filename) = $header{'Content-Disposition'}=~/ filename="?([^\"]*)"?/;
+	# Test for Opera's multiple upload feature
+	my($multipart) = ( defined( $header{'Content-Type'} ) &&
+		$header{'Content-Type'} =~ /multipart\/mixed/ ) ?
+		1 : 0;
 
 	# add this parameter to our list
 	$self->add_parameter($param);
 
 	# If no filename specified, then just read the data and assign it
 	# to our parameter list.
-	if ( !defined($filename) || $filename eq '' ) {
+	if ( ( !defined($filename) || $filename eq '' ) && !$multipart ) {
 	    my($value) = $buffer->readBody;
             $value .= $TAINTED;
 	    push(@{$self->{$param}},$value);
@@ -3032,6 +3074,11 @@ sub read_multipart {
 	      last UPLOADS;
 	  }
 
+	  # set the filename to some recognizable value
+          if ( ( !defined($filename) || $filename eq '' ) && $multipart ) {
+              $filename = "multipart/mixed";
+          }
+
 	  # choose a relatively unpredictable tmpfile sequence number
           my $seqno = unpack("%16C*",join('',localtime,values %ENV));
           for (my $cnt=10;$cnt>0;$cnt--) {
@@ -3043,6 +3090,16 @@ sub read_multipart {
           die "CGI open of tmpfile: $!\n" unless defined $filehandle;
 	  $CGI::DefaultClass->binmode($filehandle) if $CGI::needs_binmode;
 
+	  # if this is an multipart/mixed attachment, save the header
+	  # together with the body for lateron parsing with an external
+	  # MIME parser module
+	  if ( $multipart ) {
+	      foreach ( keys %header ) {
+		  print $filehandle "$_: $header{$_}${CRLF}";
+	      }
+	      print $filehandle "${CRLF}";
+	  }
+
 	  my ($data);
 	  local($\) = '';
 	  while (defined($data = $buffer->read)) {
@@ -3051,6 +3108,12 @@ sub read_multipart {
 
 	  # back up to beginning of file
 	  seek($filehandle,0,0);
+
+      ## Close the filehandle if requested this allows a multipart MIME
+      ## upload to contain many files, and we won't die due to too many
+      ## open file handles. The user can access the files using the hash
+      ## below.
+      close $filehandle if $CLOSE_UPLOAD_FILES;
 	  $CGI::DefaultClass->binmode($filehandle) if $CGI::needs_binmode;
 
 	  # Save some information about the uploaded file where we can get
@@ -3378,9 +3441,9 @@ sub read {
 	return undef;
     }
 
-    my $bytesToReturn;    
+    my $bytesToReturn;
     if ($start > 0) {           # read up to the boundary
-	$bytesToReturn = $start > $bytes ? $bytes : $start;
+        $bytesToReturn = $start-2 > $bytes ? $bytes : $start;
     } else {    # read the requested number of bytes
 	# leave enough bytes in the buffer to allow us to read
 	# the boundary.  Thanks to Kevin Hendrick for finding
@@ -3392,7 +3455,7 @@ sub read {
     substr($self->{BUFFER},0,$bytesToReturn)='';
     
     # If we hit the boundary, remove the CRLF from the end.
-    return (($start > 0) && ($start <= $bytes)) 
+    return ($bytesToReturn==$start)
            ? substr($returnval,0,-2) : $returnval;
 }
 END_OF_FUNC
@@ -3860,6 +3923,11 @@ If a value is not given in the query string, as in the queries
 "name1=&name2=" or "name1&name2", it will be returned as an empty
 string.  This feature is new in 2.63.
 
+
+If the parameter does not exist at all, then param() will return undef
+in a scalar context, and the empty list in a list context.
+
+
 =head2 SETTING THE VALUE(S) OF A NAMED PARAMETER:
 
     $query->param('foo','an','array','of','values');
@@ -3898,7 +3966,12 @@ If no namespace is given, this method will assume 'Q'.
 WARNING:  don't import anything into 'main'; this is a major security
 risk!!!!
 
-In older versions, this method was called B<import()>.  As of version 2.20, 
+NOTE 1: Variable names are transformed as necessary into legal Perl
+variable names.  All non-legal characters are transformed into
+underscores.  If you need to keep the original names, you should use
+the param() method instead to access CGI variables by name.
+
+NOTE 2: In older versions, this method was called B<import()>.  As of version 2.20, 
 this name has been removed completely to avoid conflict with the built-in
 Perl module B<import> operator.
 
@@ -4464,6 +4537,17 @@ the user to save it to disk.  The value of the argument is the
 suggested name for the saved file.  In order for this to work, you may
 have to set the B<-type> to "application/octet-stream".
 
+The B<-p3p> parameter will add a P3P tag to the outgoing header.  The
+parameter can be an arrayref or a space-delimited string of P3P tags.
+For example:
+
+   print header(-p3p=>[qw(CAO DSP LAW CURa)]);
+   print header(-p3p=>'CAO DSP LAW CURa');
+
+In either case, the outgoing header will be formatted as:
+
+  P3P: policyref="/w3c/p3p.xml" cp="CAO DSP LAW CURa"
+
 =head2 GENERATING A REDIRECTION HEADER
 
    print $query->redirect('http://somewhere.else/in/movie/land');
@@ -4552,6 +4636,9 @@ the <html> tag.  The default if not specified is "en-US" for US
 English.  For example:
 
     print $q->start_html(-lang=>'fr-CA');
+
+To leave off the lang attribute, as you must do if you want to generate
+legal HTML 3.2 or earlier, pass the empty string (-lang=>'').
 
 The B<-encoding> argument can be used to specify the character set for
 XHTML.  It defaults to iso-8859-1 if not specified.
@@ -6298,6 +6385,23 @@ http://www.w3.org/pub/WWW/TR/Wd-css-1.html for more information.
 
 Pass an array reference to B<-style> in order to incorporate multiple
 stylesheets into your document.
+
+Should you wish to incorporate a verbatim stylesheet that includes
+arbitrary formatting in the header, you may pass a -verbatim tag to
+the -style hash, as follows:
+
+print $q->start_html (-STYLE  =>  {-verbatim => '@import
+url("/server-common/css/'.$cssFile.'");',
+                      -src      =>  '/server-common/css/core.css'});
+</blockquote></pre>
+
+
+This will generate an HTML header that contains this:
+
+ <link rel="stylesheet" type="text/css"  href="/server-common/css/core.css">
+   <style type="text/css">
+   @import url("/server-common/css/main.css");
+   </style>
 
 =head1 DEBUGGING
 

@@ -271,7 +271,7 @@ use File::Spec;
 
 $main::SIG{__WARN__}=\&CGI::Carp::warn;
 *CORE::GLOBAL::die = \&CGI::Carp::die;
-$CGI::Carp::VERSION = '1.24';
+$CGI::Carp::VERSION = '1.25';
 $CGI::Carp::CUSTOM_MSG = undef;
 
 # fancy import routine detects and handles 'errorWrap' specially.
@@ -353,10 +353,6 @@ sub _warn {
     }
 }
 
-sub ineval { 
-  (exists $ENV{MOD_PERL} ? 0 : $^S) || _longmess() =~ /eval [\{\']/m 
-}
-
 
 # The mod_perl package Apache::Registry loads CGI programs by calling
 # eval.  These evals don't count when looking at the stack backtrace.
@@ -367,16 +363,27 @@ sub _longmess {
     return $message;    
 }
 
+sub ineval {
+  (exists $ENV{MOD_PERL} ? 0 : $^S) || _longmess() =~ /eval [\{\']/m
+}
+
 sub die {
+  my ($arg) = @_;
   realdie @_ if ineval;
-  my ($message) = @_;
-  my $time = scalar(localtime);
-  my($file,$line,$id) = id(1);
-  $message .= " at $file line $line." unless $message=~/\n$/;
-  &fatalsToBrowser($message) if $WRAP;
-  my $stamp = stamp;
-  $message=~s/^/$stamp/gm;
-  realdie $message;
+  if (!ref($arg)) {
+    $arg = join("", @_);
+    my($file,$line,$id) = id(1);
+    $arg .= " at $file line $line." unless $arg=~/\n$/;
+    &fatalsToBrowser($arg) if $WRAP;
+    if (($arg =~ /\n$/) || !exists($ENV{MOD_PERL})) {
+      my $stamp = stamp;
+      $arg=~s/^/$stamp/gm;
+    }
+    if ($arg !~ /\n$/) {
+      $arg .= "\n";
+    }
+  }
+  realdie $arg;
 }
 
 sub set_message {

@@ -7,7 +7,7 @@
 <BODY bgcolor="#FFFFFF">
 <H1><IMG SRC="examples/dna.small.gif" ALT="[logo]">
 CGI.pm - a Perl5 CGI Library</H1>
-Version 2.88, 10/14/2002, L. Stein
+Version 2.90, 2/10/2002, L. Stein
 <p>
 
 <H2>Abstract</H2> This perl 5 library uses objects to create Web
@@ -452,6 +452,11 @@ empty string (not undef).  This feature is new in 2.63, and was
 introduced to avoid multiple "undefined value" warnings when running
 with the -w switch.
 
+<p>
+
+If the parameter does not exist at all, then param() will return undef
+in a scalar context, and the empty list in a list context.
+
 <H3><A NAME="setting">Setting The Value(s) Of A Named Parameter</A></H3>
 
 <PRE>
@@ -532,6 +537,13 @@ script does not exit after processing a request.
 represents a major security risk, as evil people could then use this
 feature to redefine central variables such as @INC.
 CGI.pm will exit with an error if you try to do this.
+
+<p><strong>NOTE:</strong>
+Variable names are transformed as necessary into legal Perl
+variable names.  All non-legal characters are transformed into
+underscores.  If you need to keep the original names, you should use
+the param() method instead to access CGI variables by name.
+</p>
 
 <P>
 
@@ -941,6 +953,23 @@ the user to save it to disk.  The value of the argument is the
 suggested name for the saved file.  In order for this to work, you may
 have to set the <b>-type</b> to "application/octet-stream".
 
+<h4>-p3p</h4>
+
+The <b>-p3p</b> parameter will add a P3P tag to the outgoing header.  The
+parameter can be an arrayref or a space-delimited string of P3P tags.
+For example:
+
+<blockquote><pre>
+print header(-p3p=&gt;[qw(CAO DSP LAW CURa)]);
+print header(-p3p=&gt;'CAO DSP LAW CURa');
+</pre></blockquote>
+
+In either case, the outgoing header will be formatted as:
+
+<blockquote><pre>
+P3P: policyref="/w3c/p3p.xml" cp="CAO DSP LAW CURa"
+</pre></blockquote>
+
 <h4>Other header fields</h4>
 
 Any other parameters that you pass to <strong>header()</strong> will be turned
@@ -1063,6 +1092,8 @@ All parameters are optional:
 <blockquote><pre>
     print $q->start_html(-lang=>'fr-CA');
 </pre></blockquote>
+      To leave off the lang attribute, as you must do if you want to generate
+      legal HTML 3.2 or earlier, pass the empty string (-lang=&gt;'').
   <LI>A <strong>-dtd</strong> parameter to make start_html()
       generate an SGML document type definition for the document.
       This is used by SGML editors and high-end Web publishing systems
@@ -1891,7 +1922,8 @@ the file upload feature.</A>
       array, as shown in the example, or a reference to a named array,
       such as <TT>\@foo</TT>.  If you pass a <em>HASH reference</em>,
       the keys will be used for the menu values, and the values will
-      be used for the menu labels (see -labels below).
+      be used for the menu labels (see -labels below).  However, the
+      menu values will be in arbitrary order.
   <LI>The optional third parameter (<strong>-default</strong>) is the name of the
        default menu choice.  
        If not specified, the first item will be the default.  The value of 
@@ -3551,6 +3583,32 @@ Pass an array reference to <B>-style</B> in order to incorporate
 multiple stylesheets into your document.
 
 <p>
+
+Should you wish to incorporate a verbatim stylesheet that includes
+arbitrary formatting in the header, you may pass a -verbatim tag to
+the -style hash, as follows:
+
+<pre><blockquote>
+print $q-&gt;start_html (-STYLE  =&gt;  {-verbatim =&gt; '@import
+url("/server-common/css/'.$cssFile.'");',
+                      -src      =&gt;  '/server-common/css/core.css'});
+</blockquote></pre>
+
+<p>
+
+This will generate HTML like this:
+
+<pre><blockquote>
+&lt;link rel="stylesheet" type="text/css"
+ href="/server-common/css/core.css">
+
+   &lt;style type="text/css"&gt;
+   @import url("/server-common/css/main.css");
+   &lt;/style&gt;
+</blockquote></pre>
+
+<p>
+
 <a href="#contents">Table of contents</a>
 
 <hr>
@@ -4685,9 +4743,29 @@ you.
 <HR>
 
 <H2><A NAME="new">Revision History</A></H2>
+<h3>Version 2.90</h3>
+<ol>
+  <li>Fixed bug in redirect header handling.
+  <li>Added P3P option to header().
+  <li>Patches from Alexey Mahotkin to make CGI::Carp work correctly with object-oriented exceptions.
+  <li>Removed inaccurate description of how to set multiple cookies from CGI::Cookie pod file.
+  <li>Patch from Kevin Mahony to prevent running out of filehandles when uploading lots of files.
+  <li>Documentation enhancement from Mark Fisher to note that the import_names() method transforms the
+      parameter names into valid Perl names.
+  <li>Patch from Dan Harkless to suppress lang attribute in &lt;html&gt; tag if not provided explicitly. 
+  <li>Patch from Ben Edgington to fix broken XHTML-transitional 1.0 validation on endform().
+  <li>Custom html header fix from Steffen Beyer (first letter correctly upcased now)
+  <li>Added a -verbatim option to stylesheet generation from Michael Dickson
+  <li>Faster delete() method from Neelam Gupta
+  <li>Fixed broken Cygwin support.
+  <li>Added empty charset support from Bradley Baetz
+  <li>Patches from Doug Perham and Kevin Mahoney to fix file upload failures
+      when uploaded file is a multiple of 4096.
+</ol>
 <h3>Version 2.89</h3>
 <ol>
   <li>Fixed behavior of ACTION tag when POSTING to a URL that has a query string.
+  <li>Added Patch from Michael Rommel to handle multipart/mixed uploads from Opera
 </ol>
 <h3>Version 2.88</h3>
 <ol>
@@ -5692,6 +5770,6 @@ v  <LI> Added string interpolation of the CGI object.
 <a href="http://www.cshl.org/">Cold Spring Harbor Laboratory</a></ADDRESS>
 <P>
 <!-- hhmts start -->
-Last modified: Wed Oct 16 13:44:43 EDT 2002
+Last modified: Mon Feb 10 15:10:43 EST 2003
 <!-- hhmts end -->
 </BODY> </HTML>
