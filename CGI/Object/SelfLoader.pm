@@ -1,4 +1,4 @@
-package CGI3::Object::SelfLoader;
+package CGI::Object::SelfLoader;
 require 5.004;
 require Carp;
 

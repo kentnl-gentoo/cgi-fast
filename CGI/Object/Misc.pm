@@ -1,8 +1,8 @@
-package CGI3::Object::Misc;
+package CGI::Object::Misc;
 
 sub AUTOLOAD
 {
-    print STDERR "CGI3::Object::Misc::AUTOLOAD for $AUTOLOAD" if $CGI3::AUTOLOAD_DEBUG;
+    print STDERR "CGI::Object::Misc::AUTOLOAD for $AUTOLOAD" if $CGI::AUTOLOAD_DEBUG;
     eval "use $AUTOLOAD";
     if (!$@)
     {

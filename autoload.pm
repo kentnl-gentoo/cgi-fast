@@ -32,13 +32,13 @@ autoload - only load modules when they're used
 
 =head1 SYNOPSIS
 
-# For a better example, see CGI3::Object.pm. It uses
+# For a better example, see CGI::Object.pm. It uses
 # autoload.pm in quite a nice way.
 
 package MySimpleCookie;
-use autoload qw(Exporter CGI3::Object::Cookie);
+use autoload qw(Exporter CGI::Object::Cookie);
 
-@ISA = qw(Exporter CGI3::Object::Cookie);
+@ISA = qw(Exporter CGI::Object::Cookie);
 @EXPORT = qw(raw_fetch cookie raw_cookie);
 
 # raw_fetch a list of cookies from the environment and
@@ -73,7 +73,7 @@ use MySimpleCookie('raw_fetch','raw_cookie');
 $result = raw_cookie('blah');
 
 # And it won't cost 'em a cent. They didn't use any
-# functions from CGI3::Object::Cookie, so the module
+# functions from CGI::Object::Cookie, so the module
 # wasn't loaded.
 
 # But if they do use the functions, the module will load automatically
@@ -98,6 +98,6 @@ David James (david@jamesgang.com)
 
 =head1 SEE ALSO
 
-CGI3::Object(1).
+CGI::Object(1).
 
 =cut

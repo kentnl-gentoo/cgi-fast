@@ -1,6 +1,6 @@
-use lib '..','../blib/lib','../blib/arch';
+use lib '.','..','../blib/lib','../blib/arch';
 
-use CGI3;
+use CGI;
 
 sub test ($$$;$) {
     local($^W) = 0;
@@ -15,6 +15,6 @@ sub test ($$$;$) {
     print($first eq $second ? "ok $num\n" : "not ok $num $msg\n{$first}\nne\n{$second}\n\n\n\n");
 }
 
-test(29,$q=new CGI3,"CGI::new() from POST");
-test(30,$q->param('weather'), 'nice',"CGI3::param() from POST");
-test(31,$q->url_param('big_balls'), 'basketball',"CGI3::url_param()");
+test(29,$q=new CGI,"CGI::new() from POST");
+test(30,$q->param('weather'), 'nice',"CGI::param() from POST");
+test(31,$q->url_param('big_balls'), 'basketball',"CGI::url_param()");

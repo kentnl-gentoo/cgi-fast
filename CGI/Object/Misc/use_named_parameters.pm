@@ -1,6 +1,6 @@
 
 #### Method: use_named_parameters
-# Force CGI3.pm to use named parameter-style method calls
+# Force CGI.pm to use named parameter-style method calls
 # rather than positional parameters.  The same effect
 # will happen automatically if the first parameter
 # begins with a -.

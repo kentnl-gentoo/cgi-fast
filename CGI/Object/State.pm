@@ -1,13 +1,13 @@
-package CGI3::Object::State;
+package CGI::Object::State;
 use 5.004;
-use CGI3::Object;
+use CGI::Object;
 
-@ISA = 'CGI3::Object';
+@ISA = 'CGI::Object';
 
 # The POD documentation is at the end of this script.
 # Search for the string '__END__'.
 
-$CGI3::State::VERSION = "0.1";
+$CGI::State::VERSION = "0.1";
 
 use integer;                        # Faster math
 require Carp;
@@ -90,20 +90,20 @@ sub init {
     # if we get called more than once, we want to initialize
     # ourselves from the original query (which may be gone
     # if it was read from STDIN originally.)
-    if (defined(%CGI3::QUERY_PARAM) && !defined($initializer)) {
+    if (defined(%CGI::QUERY_PARAM) && !defined($initializer)) {
         my ($key,$value);
-        while (($key,$value) = each %CGI3::QUERY_PARAM)
+        while (($key,$value) = each %CGI::QUERY_PARAM)
         {
             $self->{$key} = $value;
         }
-        $self->{'.parameters'} = [keys %CGI3::QUERY_PARAM];
+        $self->{'.parameters'} = [keys %CGI::QUERY_PARAM];
         return;
     }
 
     $meth=$ENV{'REQUEST_METHOD'} if defined($ENV{'REQUEST_METHOD'});
     $content_length = defined($ENV{'CONTENT_LENGTH'}) ? $ENV{'CONTENT_LENGTH'} : 0;
-    die "Client attempted to POST $content_length bytes, but POSTs are limited to $CGI3::POST_MAX"
-    if ($CGI3::POST_MAX > 0) && ($content_length > $CGI3::POST_MAX);
+    die "Client attempted to POST $content_length bytes, but POSTs are limited to $CGI::POST_MAX"
+    if ($CGI::POST_MAX > 0) && ($content_length > $CGI::POST_MAX);
 
     # If initializer is defined, then read parameters
     # from it.
@@ -141,7 +141,7 @@ sub init {
         # Check the command line and then the standard input for data.
         # We use the shellwords package in order to behave the way that
         # UN*X programmers expect.
-        $query_string = $self->read_from_cmdline() unless $CGI3::NO_DEBUG;
+        $query_string = $self->read_from_cmdline() unless $CGI::NO_DEBUG;
     }
 
     # We now have the query string in hand.  We do slightly
@@ -187,7 +187,7 @@ sub save_request {
     # We're going to play with the package globals now so that if we get called
     # again, we initialize ourselves in exactly the same way.  This allows
     # us to have several of these objects.
-    %CGI3::QUERY_PARAM = map { $_, $self->{$_} } @{$self->{'.parameters'}};
+    %CGI::QUERY_PARAM = map { $_, $self->{$_} } @{$self->{'.parameters'}};
 }
 
 
@@ -239,4 +239,5 @@ sub charset {
 
 1;
 
+# CGI3 alpha (not for public distribution)
 # Copyright Lincoln Stein & David James 1999

@@ -1,4 +1,4 @@
-package CGI3::Object::Multipart;
+package CGI::Object::Multipart;
 
 sub SERVER_PUSH { 'multipart/x-mixed-replace; boundary="' . shift() . '"'; }
 
@@ -62,8 +62,8 @@ sub multipart_end {
 ####
 sub private_tempfiles {
     my $self = shift;
-    $CGI3::PRIVATE_TEMPFILES = shift if @_;
-    return $CGI3::PRIVATE_TEMPFILES;
+    $CGI::PRIVATE_TEMPFILES = shift if @_;
+    return $CGI::PRIVATE_TEMPFILES;
 }
 
 
@@ -110,7 +110,7 @@ sub read_multipart {
       # the file for reading.
 
       # skip the file if uploads disabled
-      if ($CGI3::DISABLE_UPLOADS) {
+      if ($CGI::DISABLE_UPLOADS) {
           while (defined($data = $buffer->read)) { }
           last UPLOADS;
       }
@@ -118,9 +118,9 @@ sub read_multipart {
       $tmpfile = new TempFile;
       $tmp = $tmpfile->as_string;
 
-      $filehandle = Fh->new($filename,$tmp,$CGI3::PRIVATE_TEMPFILES);
+      $filehandle = Fh->new($filename,$tmp,$CGI::PRIVATE_TEMPFILES);
 
-      binmode($filehandle) if $CGI3::needs_binmode;
+      binmode($filehandle) if $CGI::needs_binmode;
       chmod 0600,$tmp;    # only the owner can tamper with it
 
       my ($data);
@@ -131,7 +131,7 @@ sub read_multipart {
 
       # back up to beginning of file
       seek($filehandle,0,0);
-      binmode($filehandle) if $CGI3::needs_binmode;
+      binmode($filehandle) if $CGI::needs_binmode;
 
       # Save some information about the uploaded file where we can get
       # at it later.
@@ -146,14 +146,14 @@ sub read_multipart {
 
     # The path separator is a slash, backslash or colon, depending
     # on the platform.
-    $CGI3::SL = {
+    $CGI::SL = {
         UNIX=>'/', OS2=>'\\', WINDOWS=>'\\', MACINTOSH=>':', VMS=>'/'
-        }->{$CGI3::OS} unless $CGI3::SL;
+        }->{$CGI::OS} unless $CGI::SL;
 
     package TempFile;
 
-    $SL = $CGI3::SL;
-    $MAC = $CGI3::OS eq 'MACINTOSH';
+    $SL = $CGI::SL;
+    $MAC = $CGI::OS eq 'MACINTOSH';
     my ($vol) = $MAC ? MacPerl::Volumes() =~ /:(.*)/ : "";
     unless ($TMPDIRECTORY) {
         @TEMP=("${SL}usr${SL}tmp","${SL}var${SL}tmp",
@@ -177,7 +177,7 @@ sub read_multipart {
         my $directory;
         my $i;
         for ($i = 0; $i < $MAXTRIES; $i++) {
-        $directory = sprintf("${TMPDIRECTORY}${SL}CGI3temp%d%04d",${$},++$SEQUENCE);
+        $directory = sprintf("${TMPDIRECTORY}${SL}CGItemp%d%04d",${$},++$SEQUENCE);
         last if ! -f $directory;
         }
         return bless \$directory;
@@ -207,7 +207,7 @@ sub new_MultipartBuffer {
     $INITIAL_FILLUNIT = 1024 * 4;
     $TIMEOUT = 240*60;       # 4 hour timeout for big files
     $SPIN_LOOP_MAX = 2000;  # bug fix for some Netscape servers
-    $CRLF=$CGI3::CRLF;
+    $CRLF=$CGI::CRLF;
 
 
     sub new {
@@ -219,7 +219,7 @@ sub new_MultipartBuffer {
         }
         $IN = "main::STDIN" unless $IN;
 
-        $CGI3::DefaultClass->binmode($IN) if $CGI3::needs_binmode;
+        $CGI::DefaultClass->binmode($IN) if $CGI::needs_binmode;
 
         # If the user types garbage into the file upload field,
         # then Netscape passes NOTHING to the server (not good).
@@ -236,7 +236,7 @@ sub new_MultipartBuffer {
 
         # BUG: IE 3.01 on the Macintosh uses just the boundary -- not
         # the two extra hyphens.  We do a special case here on the user-agent!!!!
-        $boundary = "--$boundary" unless CGI3::user_agent('MSIE 3\.0[12];  ?Mac');
+        $boundary = "--$boundary" unless CGI::user_agent('MSIE 3\.0[12];  ?Mac');
 
         } else { # otherwise we find it ourselves
         my($old);
@@ -272,7 +272,7 @@ sub new_MultipartBuffer {
         my($ok) = 0;
         my($bad) = 0;
 
-        if ($CGI3::OS eq 'VMS') {  # tssk, tssk: inconsistency alert!
+        if ($CGI::OS eq 'VMS') {  # tssk, tssk: inconsistency alert!
         local($CRLF) = "\015\012";
         }
 
@@ -392,7 +392,7 @@ sub new_MultipartBuffer {
         # they manage this, but the workaround is to abort if we get
         # more than SPIN_LOOP_MAX consecutive zero reads.
         if ($bytesRead == 0) {
-        die  "CGI3.pm: Server closed socket during multipart read (client aborted?).\n"
+        die  "CGI.pm: Server closed socket during multipart read (client aborted?).\n"
             if ($self->{ZERO_LOOP_COUNTER}++ >= $SPIN_LOOP_MAX);
         } else {
         $self->{ZERO_LOOP_COUNTER}=0;

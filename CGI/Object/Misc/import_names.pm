@@ -7,7 +7,7 @@ sub import_names {
     my ($self,$namespace,$delete) = @_;
     $namespace = 'Q' unless defined($namespace);
     die "Can't import names into \"main\"\n" if \%{"${namespace}::"} == \%::;
-    if ($delete || $CGI3::MOD_PERL) {
+    if ($delete || $CGI::MOD_PERL) {
     # can anyone find an easier way to do this?
     foreach (keys %{"${namespace}::"}) {
         local *symbol = "${namespace}::${_}";

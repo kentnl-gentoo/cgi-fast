@@ -9,11 +9,11 @@ sub dump {
     return '<UL></UL>' unless $self->param;
     push(@result,"<UL>");
     foreach $param (@{$self->{'.parameters'}}) {
-        CGI3::Html::escapeHTML($param);
+        CGI::Html::escapeHTML($param);
         push(@result,"<LI><STRONG>$param</STRONG>");
         push(@result,"<UL>");
         foreach $value ($self->param($value)) {
-            CGI3::Html::escapeHTML($value);
+            CGI::Html::escapeHTML($value);
             push(@result,"<LI>$value");
         }
         push(@result,"</UL>");

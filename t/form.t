@@ -2,11 +2,11 @@
 
 # Test ability to retrieve HTTP request info
 ######################### We start with some black magic to print on failure.
-use lib '..','../blib/lib','../blib/arch';
+use lib '.','..','../blib/lib','../blib/arch';
 
 BEGIN {$| = 1; print "1..17\n"; $^W = 1; }
 END {print "not ok 1\n" unless $loaded;}
-use CGI3 (':standard','-no_debug');
+use CGI (':standard','-no_debug');
 $loaded = 1;
 print "ok 1\n";
 
@@ -19,7 +19,7 @@ sub test ($$$$) {
     print($first eq $second ? "ok $num\n" : "not ok $num $msg \n{$first}\nne \n{$second}\n\n\n\n");
 }
 
-# Set up a CGI3 environment
+# Set up a CGI environment
 $ENV{REQUEST_METHOD}='GET';
 $ENV{QUERY_STRING}  ='game=chess&game=checkers&weather=dull';
 $ENV{PATH_INFO}     ='/somewhere/else';

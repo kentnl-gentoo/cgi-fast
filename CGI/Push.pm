@@ -1,4 +1,4 @@
-package CGI3::Push;
+package CGI::Push;
 
 # See the bottom of this file for the POD documentation.  Search for the
 # string '=head'.
@@ -14,17 +14,17 @@ package CGI3::Push;
 # listing the modifications you have made.
 
 # The most recent version and complete docs are available at:
-#   http://stein.cshl.org/WWW/software/CGI3/
+#   http://stein.cshl.org/WWW/software/CGI/
 
-$CGI3::Push::VERSION='1.01';
-use CGI3;
-@ISA = ('CGI3::Object');
+$CGI::Push::VERSION='1.01';
+use CGI;
+@ISA = ('CGI::Object');
 
-*CGI3::Object::do_push = \&do_push;
-*CGI3::Object::push_delay = \&push_delay;
+*CGI::Object::do_push = \&do_push;
+*CGI::Object::push_delay = \&push_delay;
 
 # add do_push() and push_delay() to exported tags
-push(@{$CGI3::EXPORT_TAGS{':standard'}},'do_push','push_delay');
+push(@{$CGI::EXPORT_TAGS{':standard'}},'do_push','push_delay');
 
 my $do_push_params = {TYPE=>0,NEXT_PAGE=>1,DELAY=>2,LAST_PAGE=>3,COOKIE=>4,COOKIES=>4,TARGET=>5,EXPIRES=>6};
 my $do_push_defaults = ['text/html',\&simple_counter,1,'',undef,undef,undef];
@@ -48,39 +48,39 @@ sub do_push {
     push(@o,'-Target'=>$target) if defined($target);
     push(@o,'-Cookie'=>$cookie) if defined($cookie);
     push(@o,'-Type'=>"multipart/x-mixed-replace; boundary=$boundary");
-    push(@o,'-Server'=>"CGI3.pm Push Module");
+    push(@o,'-Server'=>"CGI.pm Push Module");
     push(@o,'-Status'=>'200 OK');
     push(@o,'-nph'=>1);
     print $self->header(@o);
-    print "${boundary}$CGI3::CRLF";
+    print "${boundary}$CGI::CRLF";
 
     # now we enter a little loop
     my @contents;
     while (1) {
     last unless (@contents = &$callback($self,++$COUNTER)) && defined($contents[0]);
-    print "Content-type: ${type}$CGI3::CRLF$CGI3::CRLF"
+    print "Content-type: ${type}$CGI::CRLF$CGI::CRLF"
         unless $type eq 'dynamic';
-    print @contents,"$CGI3::CRLF";
-    print "${boundary}$CGI3::CRLF";
+    print @contents,"$CGI::CRLF";
+    print "${boundary}$CGI::CRLF";
     do_sleep($self->push_delay()) if $self->push_delay();
     }
 
     # Optional last page
     if ($last_page && ref($last_page) eq 'CODE') {
-    print "Content-type: ${type}$CGI3::CRLF$CGI3::CRLF" unless $type =~ /^dynamic|heterogeneous$/i;
-    print  &$last_page($self,$COUNTER),"$CGI3::CRLF${boundary}$CGI3::CRLF";
+    print "Content-type: ${type}$CGI::CRLF$CGI::CRLF" unless $type =~ /^dynamic|heterogeneous$/i;
+    print  &$last_page($self,$COUNTER),"$CGI::CRLF${boundary}$CGI::CRLF";
     }
 }
 
 sub simple_counter {
     my ($self,$count) = @_;
     return (
-        CGI3->start_html("CGI3::Push Default Counter"),
-        CGI3->h1("CGI3::Push Default Counter"),
-        "This page has been updated ",CGI3->strong($count)," times.",
-        CGI3->hr(),
-        CGI3->a({'-href'=>'http://www.genome.wi.mit.edu/ftp/pub/software/WWW/cgi_docs.html'},'CGI3.pm home page'),
-        CGI3->end_html
+        CGI->start_html("CGI::Push Default Counter"),
+        CGI->h1("CGI::Push Default Counter"),
+        "This page has been updated ",CGI->strong($count)," times.",
+        CGI->hr(),
+        CGI->a({'-href'=>'http://www.genome.wi.mit.edu/ftp/pub/software/WWW/cgi_docs.html'},'CGI.pm home page'),
+        CGI->end_html
         );
 }
 
@@ -94,7 +94,7 @@ sub do_sleep {
 }
 
 sub push_delay {
-   my ($self,$delay) = CGI3::self_or_default(@_);
+   my ($self,$delay) = CGI::self_or_default(@_);
    return defined($delay) ? $self->{'.delay'} =
     $delay : $self->{'.delay'};
 }
@@ -103,11 +103,11 @@ sub push_delay {
 
 =head1 NAME
 
-CGI3::Push - Simple Interface to Server Push
+CGI::Push - Simple Interface to Server Push
 
 =head1 SYNOPSIS
 
-    use CGI3::Push qw(:standard);
+    use CGI::Push qw(:standard);
 
     do_push(-next_page=>\&next_page,
             -last_page=>\&last_page,
@@ -132,36 +132,36 @@ CGI3::Push - Simple Interface to Server Push
 
 =head1 DESCRIPTION
 
-CGI3::Push is a subclass of the CGI3 object created by CGI3.pm.  It is
+CGI::Push is a subclass of the CGI object created by CGI.pm.  It is
 specialized for server push operations, which allow you to create
 animated pages whose content changes at regular intervals.
 
-You provide CGI3::Push with a pointer to a subroutine that will draw
+You provide CGI::Push with a pointer to a subroutine that will draw
 one page.  Every time your subroutine is called, it generates a new
 page.  The contents of the page will be transmitted to the browser
 in such a way that it will replace what was there beforehand.  The
 technique will work with HTML pages as well as with graphics files,
 allowing you to create animated GIFs.
 
-=head1 USING CGI3::Push
+=head1 USING CGI::Push
 
-CGI3::Push adds one new method to the standard CGI3 suite, do_push().
+CGI::Push adds one new method to the standard CGI suite, do_push().
 When you call this method, you pass it a reference to a subroutine
 that is responsible for drawing each new page, an interval delay, and
 an optional subroutine for drawing the last page.  Other optional
-parameters include most of those recognized by the CGI3 header()
+parameters include most of those recognized by the CGI header()
 method.
 
 You may call do_push() in the object oriented manner or not, as you
 prefer:
 
-    use CGI3::Push;
-    $q = new CGI3::Push;
+    use CGI::Push;
+    $q = new CGI::Push;
     $q->do_push(-next_page=>\&draw_a_page);
 
         -or-
 
-    use CGI3::Push qw(:standard);
+    use CGI::Push qw(:standard);
     do_push(-next_page=>\&draw_a_page);
 
 Parameters are as follows:
@@ -174,7 +174,7 @@ Parameters are as follows:
 
 This required parameter points to a reference to a subroutine responsible for
 drawing each new page.  The subroutine should expect two parameters
-consisting of the CGI3 object and a counter indicating the number
+consisting of the CGI object and a counter indicating the number
 of times the subroutine has been called.  It should return the
 contents of the page as an B<array> of one or more items to print.
 It can return a false value (or an empty array) in order to abort the
@@ -219,13 +219,13 @@ B<If not specified, -delay will default to 1 second>
 =item -cookie, -target, -expires
 
 These have the same meaning as the like-named parameters in
-CGI3::header().
+CGI::header().
 
 =back
 
 =head2 Heterogeneous Pages
 
-Ordinarily all pages displayed by CGI3::Push share a common MIME type.
+Ordinarily all pages displayed by CGI::Push share a common MIME type.
 However by providing a value of "heterogeneous" or "dynamic" in the
 do_push() -type parameter, you can specify the MIME type of each page
 on a case-by-case basis.
@@ -277,7 +277,7 @@ wish to delay after the current page is displayed and before
 displaying the next one.  The delay may be fractional.  Without
 parameters, push_delay() just returns the current delay.
 
-=head1 INSTALLING CGI3::Push SCRIPTS
+=head1 INSTALLING CGI::Push SCRIPTS
 
 Server push scripts B<must> be installed as no-parsed-header (NPH)
 scripts in order to work correctly.  On Unix systems, this is most
@@ -301,7 +301,7 @@ This section intentionally left blank.
 
 =head1 SEE ALSO
 
-L<CGI3::Carp>, L<CGI3>
+L<CGI::Carp>, L<CGI>
 
 =cut
 

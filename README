@@ -1,7 +1,6 @@
-This is a plug-in replacement for the CGI module which contains
-numerous and extensive performance enhancements contributed by David
-James (david@jamesgang.com).
+Version 3 of CGI.pm is in alpha state.  It has significant performance
+improvements over the 2.X series, but is not stable.  If you find a
+bug, please track it down, fix it, and send me the patch.
 
-It is based in CGI.pm version 2.60.
-
+Lincoln Stein
 

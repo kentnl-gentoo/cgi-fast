@@ -1,4 +1,4 @@
-package CGI3::Object::Cookie;
+package CGI::Object::Cookie;
 
 use strict;
 
@@ -182,10 +182,11 @@ sub expire_calc {
 
 
 
-use CGI3::Object;
+use CGI::Object;
 
 
 
 1;
 
+# CGI3 alpha (not for public distribution)
 # Copyright Lincoln Stein & David James 1999

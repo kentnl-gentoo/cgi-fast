@@ -1,5 +1,5 @@
-use lib '..','../blib/lib','../blib/arch';
-use CGI3 (':standard');
+use lib '.','..','../blib/lib','../blib/arch';
+use CGI (':standard');
 sub test {
     local($^W) = 0;
     my($num, $true,$msg) = @_;
@@ -7,5 +7,5 @@ sub test {
 }
 
 
-test(23,param('weather') eq 'nice',"CGI3::param() from POST");
-test(24,url_param('big_balls') eq 'basketball',"CGI3::url_param()");
+test(23,param('weather') eq 'nice',"CGI::param() from POST");
+test(24,url_param('big_balls') eq 'basketball',"CGI::url_param()");

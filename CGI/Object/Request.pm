@@ -1,10 +1,10 @@
-package CGI3::Object::Request;
+package CGI::Object::Request;
 
-use CGI3::Object;
+use CGI::Object;
 use integer;
-@ISA = 'CGI3::Object';
+@ISA = 'CGI::Object';
 
-$CGI3::IIS++ if defined($ENV{'SERVER_SOFTWARE'}) && $ENV{'SERVER_SOFTWARE'}=~/IIS/;
+$CGI::IIS++ if defined($ENV{'SERVER_SOFTWARE'}) && $ENV{'SERVER_SOFTWARE'}=~/IIS/;
 
 #### Method: self_url
 # Returns a URL containing the current script and all its
@@ -84,7 +84,7 @@ sub path_info {
         $ENV{'PATH_INFO'} : '';
 
     # hack to fix broken path info in IIS
-    $self->{'.path_info'} =~ s/^\Q$ENV{'SCRIPT_NAME'}\E// if $CGI3::IIS;
+    $self->{'.path_info'} =~ s/^\Q$ENV{'SCRIPT_NAME'}\E// if $CGI::IIS;
 
     }
     return $self->{'.path_info'};
@@ -116,13 +116,13 @@ sub query_string {
     my($param,$eparam,$value,@pairs);
     foreach $param (@{$self->{'.parameters'}}) {
         $eparam = $param;
-        $eparam =~ s/$CGI3::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
+        $eparam =~ s/$CGI::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
         foreach $value ($self->param($param)) {
-            $value =~ s/$CGI3::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
+            $value =~ s/$CGI::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
             push(@pairs,"$eparam=$value");
         }
     }
-    return join($CGI3::USE_PARAM_SEMICOLONS ? ";" : "&",@pairs);
+    return join($CGI::USE_PARAM_SEMICOLONS ? ";" : "&",@pairs);
 }
 
 
@@ -348,4 +348,5 @@ sub user_name {
 }
 
 1;
+# CGI3 alpha (not for public distribution)
 # Copyright Lincoln Stein & David James 1999

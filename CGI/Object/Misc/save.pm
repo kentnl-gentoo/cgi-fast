@@ -12,9 +12,9 @@ sub save {
     local($\) = '';  # set output line separator to a sane value
     foreach $param (@{$self->{'.parameters'}}) {
         next unless defined $param;
-        ($escaped_param = $param) =~ s/$CGI3::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
+        ($escaped_param = $param) =~ s/$CGI::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
         foreach $value ($self->param($param)) {
-            $value  =~ s/$CGI3::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
+            $value  =~ s/$CGI::Object::escape/uc sprintf("%%%02x",ord($1))/ego;
             print $filehandle "$escaped_param=$value\n";
         }
     }

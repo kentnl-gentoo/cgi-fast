@@ -1,15 +1,15 @@
-package CGI3::Object::CGI3lib;
+package CGI::Object::CGIlib;
 
-@ISA = 'CGI3::Object';
+@ISA = 'CGI::Object';
 
-use CGI3::Object;
+use CGI::Object;
 
 sub ReadParse {
     my $self = shift;
     local(*in);
 
     my $caller = caller();
-    if (UNIVERSAL::isa($caller,"CGI3") || $caller =~ /^CGI3::/)
+    if (UNIVERSAL::isa($caller,"CGI") || $caller =~ /^CGI::/)
     {
         $caller = caller(1);
     }
@@ -21,7 +21,7 @@ sub ReadParse {
         *in = "${caller}::in";
     }
 
-    tie(%in,'CGI3::Object::CGI3lib');
+    tie(%in,'CGI::Object::CGIlib');
 
     return scalar @{ $self->{'.parameters'} };
 }
@@ -43,7 +43,7 @@ sub MethPost {
 }
 
 sub TIEHASH {
-    return $CGI3::Q;
+    return $CGI::Q;
 }
 
 sub STORE {
@@ -51,7 +51,7 @@ sub STORE {
 }
 
 sub FETCH {
-    return $_[0] if $_[1] eq 'CGI3';
+    return $_[0] if $_[1] eq 'CGI';
     return undef unless defined $_[0]->param($_[1]);
     return join("\0",$_[0]->param($_[1]));
 }
@@ -80,4 +80,5 @@ sub CLEAR {
 
 1;
 
+# CGI3 alpha (not for public distribution)
 # Copyright Lincoln Stein & David James 1999

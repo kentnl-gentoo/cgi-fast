@@ -11,7 +11,7 @@ sub url_param {
             my(@pairs) = split(/[&;]/,$ENV{QUERY_STRING});
             my($param,$value);
             foreach (@pairs) {
-                s/$CGI3::Object::unescape/pack("c",hex($1))/ego;
+                s/$CGI::Object::unescape/pack("c",hex($1))/ego;
                 tr/+/ /;
                 ($param,$value) = split('=',$_,2);
                 push(@{$self->{'.url_param'}->{$param}},$value);

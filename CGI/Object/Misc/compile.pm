@@ -4,12 +4,12 @@ sub compile
 {
     my ($pack,$sub);
     PACK: foreach $pack (qw(
-CGI3::Object::Html    
-CGI3::Object::Request 
-CGI3::Object::Cookie  
-CGI3::Object::CGI3lib  
-CGI3::Object::Response
-CGI3::Object::Multipart ) )
+CGI::Object::Html    
+CGI::Object::Request 
+CGI::Object::Cookie  
+CGI::Object::CGIlib  
+CGI::Object::Response
+CGI::Object::Multipart ) )
     {
         foreach $sub (keys %{"$pack\::"})
         {
@@ -21,12 +21,12 @@ CGI3::Object::Multipart ) )
         eval "require $pack"; die if $@;
     }
 
-    my @keys = keys %{"CGI3::Object::Misc::"};
+    my @keys = keys %{"CGI::Object::Misc::"};
     foreach $sub (@keys)
     {
-        if (defined *{"CGI3::Object::Misc::$sub"}{CODE} && !defined &{"CGI3::Object::Misc::$sub"})
+        if (defined *{"CGI::Object::Misc::$sub"}{CODE} && !defined &{"CGI::Object::Misc::$sub"})
         {
-            eval "require CGI3::Object::Misc::$sub";
+            eval "require CGI::Object::Misc::$sub";
         }
     }
 }

@@ -2,7 +2,7 @@ sub restore
 {
     my $self = shift;
     my $initializer = shift;
-    if (defined $initializer && UNIVERSAL::isa($initializer,'CGI3::Object')) {
+    if (defined $initializer && UNIVERSAL::isa($initializer,'CGI::Object')) {
         return $initializer->query_string;
     }
     if (ref($initializer) && ref($initializer) eq 'HASH') {

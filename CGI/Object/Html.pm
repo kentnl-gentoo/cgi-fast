@@ -1,4 +1,4 @@
-package CGI3::Object::Html;
+package CGI::Object::Html;
 use 5.004;
 
 # See the bottom of this file for the POD documentation.  Search for the
@@ -15,10 +15,10 @@ use 5.004;
 # wish, but if you redistribute a modified version, please attach a note
 # listing the modifications you have made.
 
-use CGI3::Object;
-use CGI3::Object::SelfLoader;
+use CGI::Object;
+use CGI::Object::SelfLoader;
 
-@ISA = 'CGI3::Object';
+@ISA = 'CGI::Object';
 
 sub URL_ENCODED { 'application/x-www-form-urlencoded'; }
 sub MULTIPART {  'multipart/form-data'; }
@@ -52,7 +52,7 @@ sub _make_tag_func {
 
     if ($tag=~/START_(\w+)/) {
         $tag = $1;
-        *{"CGI3::Object::$tagname"} = sub {
+        *{"CGI::Object::$tagname"} = sub {
             my $self = shift;
             my($attr) = '';
             if (ref($_[0]) && ref($_[0]) eq 'HASH') {
@@ -63,9 +63,9 @@ sub _make_tag_func {
         };
     } elsif ($tag=~/END_(\w+)/) {
         $tag = $1;
-        *{"CGI3::Object::$tagname"} = sub { "</$tag>" }
+        *{"CGI::Object::$tagname"} = sub { "</$tag>" }
     } else {
-        *{"CGI3::Object::$tagname"} = sub {
+        *{"CGI::Object::$tagname"} = sub {
             my $self = shift;
             my $attr = '';
             if (ref($_[0]) && ref($_[0]) eq 'HASH') {
@@ -80,16 +80,16 @@ sub _make_tag_func {
 }
 
 sub AUTOLOAD_FAIL {
-    print STDERR "CGI3::Html::AUTOLOAD for $AUTOLOAD\n" if $CGI3::AUTOLOAD_DEBUG;
+    print STDERR "CGI::Html::AUTOLOAD for $AUTOLOAD\n" if $CGI::AUTOLOAD_DEBUG;
     my ($base) = $AUTOLOAD =~ /([^:]+)$/;
     my $nbase = $base;
     $nbase =~ s/^start_|^end_//;
-    if ($tags{$nbase} || $CGI3::EXPORT{':any'} ||
-        $CGI3::EXPORT{'-any'}) {
+    if ($tags{$nbase} || $CGI::EXPORT{':any'} ||
+        $CGI::EXPORT{'-any'}) {
         my $cref = $_[0]->_make_tag_func($base);
         goto &$cref;
     }
-    Carp::confess "Undefined $CGI3::DefaultClass subroutine $AUTOLOAD";
+    Carp::confess "Undefined $CGI::DefaultClass subroutine $AUTOLOAD";
 }
 
 
@@ -164,16 +164,16 @@ sub start_html {
     # strangely enough, the title needs to be escaped as HTML
     # while the author needs to be escaped as a URL
     $self->escapeHTML($title);
-    $author =~ s/$CGI3::Object::escape/uc sprintf("%%%02x",ord($1))/eg;
+    $author =~ s/$CGI::Object::escape/uc sprintf("%%%02x",ord($1))/eg;
 
     if ($dtd) {
         if (ref $dtd && $ref eq 'ARRAY') {
-            $dtd = $CGI3::DEFAULT_DTD unless $dtd->[0] =~ m|^-//|;
+            $dtd = $CGI::DEFAULT_DTD unless $dtd->[0] =~ m|^-//|;
         } else {
-            $dtd = $CGI3::DEFAULT_DTD unless $dtd =~ m|^-//|;
+            $dtd = $CGI::DEFAULT_DTD unless $dtd =~ m|^-//|;
         }
     } else {
-        $dtd = $CGI3::DEFAULT_DTD;
+        $dtd = $CGI::DEFAULT_DTD;
     }
 
     my @result;
@@ -1176,4 +1176,5 @@ END_OF_FUNC
 
 __END__
 
+# CGI3 alpha (not for public distribution)
 # Copyright Lincoln Stein & David James 1999

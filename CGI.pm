@@ -1,4 +1,4 @@
-package CGI3;
+package CGI;
 require 5.004;
 
 # See the bottom of this file for the POD documentation.  Search for the
@@ -16,15 +16,15 @@ require 5.004;
 # listing the modifications you have made.
 
 # The most recent version and complete docs are available at:
-#   http://stein.cshl.org/WWW/software/CGI3/
+#   http://stein.cshl.org/WWW/software/CGI/
 
-$CGI3::revision = '$Id: CGI3.pm,v 1.6 2000/04/10 14:47:37 lstein Exp $';
-$CGI3::VERSION='3.01';
+$CGI::revision = '$Id: CGI.pm,v 1.6 2000/04/10 14:47:37 lstein Exp $ ';
+$CGI::VERSION='3.02';
 
-use CGI3::Object;
+use CGI::Object;
 
-$DefaultClass = 'CGI3::Object';
-$AutoloadClass = 'CGI3::Func';
+$DefaultClass = 'CGI::Object';
+$AutoloadClass = 'CGI::Func';
 
 %EXPORT_TAGS = (
         ':html2'=>['h1'..'h6',qw/p br hr ol ul li dl dt dd menu code var strong em
@@ -59,10 +59,10 @@ my %EXPORT;
 sub import {
     my $self = $_[0];
   
-    if ($self->isa('CGI3::Object'))
+    if ($self->isa('CGI::Object'))
     {
         $DefaultClass = $self;
-        $self = 'CGI3';
+        $self = 'CGI';
     }
 
     &{$self->can('_setup_symbols')};
@@ -91,11 +91,11 @@ sub import {
 sub AUTOLOAD
 {
     my ($function_name) = $AUTOLOAD =~ /([^:]+)$/;
-    print STDERR "CGI3::AUTOLOAD for $AUTOLOAD ($function_name)\n" if $CGI3::AUTOLOAD_DEBUG;
-    unless (defined $CGI3::Q)
+    print STDERR "CGI::AUTOLOAD for $AUTOLOAD ($function_name)\n" if $CGI::AUTOLOAD_DEBUG;
+    unless (defined $CGI::Q)
     {
-        $CGI3::Q = bless { }, $DefaultClass;
-        $CGI3::Q = new $DefaultClass
+        $CGI::Q = bless { }, $DefaultClass;
+        $CGI::Q = new $DefaultClass
     }
     
     goto &{ _compile($function_name) };
@@ -105,11 +105,11 @@ sub _compile
 {
     my $name = $_[0];
     *{"$name"} = sub {
-        if (defined $_[0] && UNIVERSAL::isa($_[0],'CGI3'))
+        if (defined $_[0] && UNIVERSAL::isa($_[0],'CGI'))
         {
             shift;
         }
-        $CGI3::Q->$name(@_)
+        $CGI::Q->$name(@_)
     };
 }
 
@@ -138,7 +138,7 @@ sub _setup_symbols {
             my($pkg) = caller(1);
             *{"${pkg}::AUTOLOAD"} = sub {
                 my($routine) = $AUTOLOAD;
-                $routine =~ s/^.*::/CGI3::/;
+                $routine =~ s/^.*::/CGI::/;
                 goto &$routine;
             };
             next;
@@ -155,12 +155,12 @@ sub _setup_symbols {
 
 sub escapeHTML {
     my $string = ref($_[0]) ? $_[1] : $_[0];
-    CGI3::Object::escapeHTML($CGI3::Q,$string);
+    CGI::Object::escapeHTML($CGI::Q,$string);
     return $string;
 }
 sub unescapeHTML {
     my $string = ref($_[0]) ? $_[1] : $_[0];
-    CGI3::Object::unescapeHTML($CGI3::Q,$string);
+    CGI::Object::unescapeHTML($CGI::Q,$string);
     return $string;
 }
 
@@ -192,7 +192,7 @@ sub _compile_all
     foreach (@_) {
         next if defined(&$_);        
         _compile($_);
-        CGI3::Func::_compile($_);
+        CGI::Func::_compile($_);
     }
     my $tmp = new $DefaultClass;
     $tmp->compile();
@@ -207,46 +207,46 @@ sub new
         '.named'=>0
     };
 
-    if (ref $class eq "CGI3" or $class eq "CGI3")
+    if (ref $class eq "CGI" or $class eq "CGI")
     {
-        bless $self, 'CGI3::Object';
+        bless $self, 'CGI::Object';
     }
     else
     {
-        bless $self, ref $class || $class || 'CGI3::Object';
+        bless $self, ref $class || $class || 'CGI::Object';
     }
 
-    if ($CGI3::MOD_PERL) {
-        Apache->request->register_cleanup(\&CGI3::Object::_reset_globals);
+    if ($CGI::MOD_PERL) {
+        Apache->request->register_cleanup(\&CGI::Object::_reset_globals);
         undef $NPH;
     }
-    $self->_reset_globals if $CGI3::PERLEX;
+    $self->_reset_globals if $CGI::PERLEX;
 
     $self->init(@_);
 
     return $self;
 }
 
-sub CGI3::Object::self_or_default
+sub CGI::Object::self_or_default
 { return @_ }
 
-sub CGI3::Object::self_or_CGI3
+sub CGI::Object::self_or_CGI
 { return @_ }
 
 
 sub DESTROY { }
 
-package CGI3::Func;
+package CGI::Func;
 
 sub AUTOLOAD
 {
-    print STDERR "CGI3::Func::AUTOLOAD for $AUTOLOAD\n" if $CGI3::AUTOLOAD_DEBUG;
+    print STDERR "CGI::Func::AUTOLOAD for $AUTOLOAD\n" if $CGI::AUTOLOAD_DEBUG;
     my ($function_name) = $AUTOLOAD =~ /.+::(.+)/;
 
-    if (not defined $CGI3::Q)
+    if (not defined $CGI::Q)
     {
-        $CGI3::Q = bless { }, $CGI3::DefaultClass;
-        $CGI3::Q = new $CGI3::DefaultClass;
+        $CGI::Q = bless { }, $CGI::DefaultClass;
+        $CGI::Q = new $CGI::DefaultClass;
     }
 
     goto &{ _compile($function_name) };  
@@ -255,26 +255,27 @@ sub AUTOLOAD
 sub _compile
 {
     my $name = $_[0];
-    *{"$name"} = sub { $CGI3::Q->$name(@_) };
+    *{"$name"} = sub { $CGI::Q->$name(@_) };
 }
 
 
 1;
 
+# CGI3 alpha (not for public distribution)
 # Copyright Lincoln Stein & David James 1999
 
 __END__
 
 =head1 NAME
 
-CGI3 - Simple Common Gateway Interface Class
+CGI - Simple Common Gateway Interface Class
 
 =head1 SYNOPSIS
 
-  # CGI3 script that creates a fill-out form
+  # CGI script that creates a fill-out form
   # and echoes back its values.
 
-  use CGI3 qw/:standard/;
+  use CGI qw/:standard/;
   print header,
         start_html('A Simple Example'),
         h1('A Simple Example'),
@@ -301,21 +302,21 @@ CGI3 - Simple Common Gateway Interface Class
 =head1 ABSTRACT
 
 This perl library uses perl5 objects to make it easy to create Web
-fill-out forms and parse their contents.  This package defines CGI3
+fill-out forms and parse their contents.  This package defines CGI
 objects, entities that contain the values of the current query string
-and other state variables.  Using a CGI3 object's methods, you can
+and other state variables.  Using a CGI object's methods, you can
 examine keywords and parameters passed to your script, and create
 forms whose initial values are taken from the current query (thereby
 preserving state information).  The module provides shortcut functions
 that produce boilerplate HTML, reducing typing and coding errors. It
 also provides functionality for some of the more advanced features of
-CGI3 scripting, including support for file uploads, cookies, cascading
+CGI scripting, including support for file uploads, cookies, cascading
 style sheets, server push, and frames.
 
-CGI3.pm also provides a simple function-oriented programming style for
+CGI.pm also provides a simple function-oriented programming style for
 those who don't need its object-oriented features.
 
-The current version of CGI3.pm is available at
+The current version of CGI.pm is available at
 
   http://www.genome.wi.mit.edu/ftp/pub/software/WWW/cgi_docs.html
   ftp://ftp-genome.wi.mit.edu/pub/software/WWW/
@@ -324,14 +325,14 @@ The current version of CGI3.pm is available at
 
 =head2 PROGRAMMING STYLE
 
-There are two styles of programming with CGI3.pm, an object-oriented
+There are two styles of programming with CGI.pm, an object-oriented
 style and a function-oriented style.  In the object-oriented style you
-create one or more CGI3 objects and then use object methods to create
-the various elements of the page.  Each CGI3 object starts out with the
-list of named parameters that were passed to your CGI3 script by the
+create one or more CGI objects and then use object methods to create
+the various elements of the page.  Each CGI object starts out with the
+list of named parameters that were passed to your CGI script by the
 server.  You can modify the objects, save them to a file or database
 and recreate them.  Because each object corresponds to the "state" of
-the CGI3 script, and because each object's parameter list is
+the CGI script, and because each object's parameter list is
 independent of the others, this allows you to save the state of the
 script and restore it later.
 
@@ -339,25 +340,25 @@ For example, using the object oriented style, here is how you create
 a simple "Hello World" HTML page:
 
    #!/usr/local/bin/perl
-   use CGI3;                             # load CGI3 routines
-   $q = new CGI3;                        # create new CGI3 object
+   use CGI;                             # load CGI routines
+   $q = new CGI;                        # create new CGI object
    print $q->header,                    # create the HTTP header
          $q->start_html('hello world'), # start the HTML
          $q->h1('hello world'),         # level 1 header
          $q->end_html;                  # end the HTML
 
-In the function-oriented style, there is one default CGI3 object that
+In the function-oriented style, there is one default CGI object that
 you rarely deal with directly.  Instead you just call functions to
-retrieve CGI3 parameters, create HTML tags, manage cookies, and so
+retrieve CGI parameters, create HTML tags, manage cookies, and so
 on.  This provides you with a cleaner programming interface, but
-limits you to using one CGI3 object at a time.  The following example
+limits you to using one CGI object at a time.  The following example
 prints the same page, but uses the function-oriented interface.
 The main differences are that we now need to import a set of functions
 into our name space (usually the "standard" functions), and we don't
-need to create the CGI3 object.
+need to create the CGI object.
 
    #!/usr/local/bin/perl
-   use CGI3 qw/:standard/;           # load standard CGI3 routines
+   use CGI qw/:standard/;           # load standard CGI routines
    print header,                    # create the HTTP header
          start_html('hello world'), # start the HTML
          h1('hello world'),         # level 1 header
@@ -365,11 +366,11 @@ need to create the CGI3 object.
 
 The examples in this document mainly use the object-oriented style.
 See HOW TO IMPORT FUNCTIONS for important information on
-function-oriented programming in CGI3.pm
+function-oriented programming in CGI.pm
 
-=head2 CALLING CGI3.PM ROUTINES
+=head2 CALLING CGI.PM ROUTINES
 
-Most CGI3.pm routines accept several arguments, sometimes as many as 20
+Most CGI.pm routines accept several arguments, sometimes as many as 20
 optional ones!  To simplify this interface, all routines use a named
 argument calling style that looks like this:
 
@@ -378,15 +379,15 @@ argument calling style that looks like this:
 Each argument name is preceded by a dash.  Neither case nor order
 matters in the argument list.  -type, -Type, and -TYPE are all
 acceptable.  In fact, only the first argument needs to begin with a
-dash.  If a dash is present in the first argument, CGI3.pm assumes
+dash.  If a dash is present in the first argument, CGI.pm assumes
 dashes for the subsequent ones.
 
 You don't have to use the hyphen at all if you don't want to.  After
-creating a CGI3 object, call the B<use_named_parameters()> method with
-a nonzero value.  This will tell CGI3.pm that you intend to use named
+creating a CGI object, call the B<use_named_parameters()> method with
+a nonzero value.  This will tell CGI.pm that you intend to use named
 parameters exclusively:
 
-   $query = new CGI3;
+   $query = new CGI;
    $query->use_named_parameters(1);
    $field = $query->radio_group('name'=>'OS',
                 'values'=>['Unix','Windows','Macintosh'],
@@ -404,19 +405,19 @@ Other such routines are documented below.
 Sometimes named arguments expect a scalar, sometimes a reference to an
 array, and sometimes a reference to a hash.  Often, you can pass any
 type of argument and the routine will do whatever is most appropriate.
-For example, the param() routine is used to set a CGI3 parameter to a
+For example, the param() routine is used to set a CGI parameter to a
 single or a multi-valued value.  The two cases are shown below:
 
    $q->param(-name=>'veggie',-value=>'tomato');
    $q->param(-name=>'veggie',-value=>'[tomato','tomahto','potato','potahto']);
 
-A large number of routines in CGI3.pm actually aren't specifically
+A large number of routines in CGI.pm actually aren't specifically
 defined in the module, but are generated automatically as needed.
 These are the "HTML shortcuts," routines that generate HTML tags for
 use in dynamically-generated pages.  HTML tags have both attributes
 (the attribute="value" pairs within the tag itself) and contents (the
 part between the opening and closing pairs.)  To distinguish between
-attributes and contents, CGI3.pm uses the convention of passing HTML
+attributes and contents, CGI.pm uses the convention of passing HTML
 attributes as a hash reference as the first argument, and the
 contents, if any, as any subsequent arguments.  It works out like
 this:
@@ -430,7 +431,7 @@ this:
 
 HTML tags are described in more detail later.
 
-Many newcomers to CGI3.pm are puzzled by the difference between the
+Many newcomers to CGI.pm are puzzled by the difference between the
 calling conventions for the HTML shortcuts, which require curly braces
 around the HTML tag attributes, and the calling conventions for other
 routines, which manage to generate attributes without the curly
@@ -441,7 +442,7 @@ example:
 
    print $q->header( {-type=>'image/gif',-expires=>'+3d'} );
 
-If you use the B<-w> switch, you will be warned that some CGI3.pm argument
+If you use the B<-w> switch, you will be warned that some CGI.pm argument
 names conflict with built-in Perl functions.  The most frequent of
 these is the -values argument, used to create multi-valued menus,
 radio button clusters and the like.  To get around this warning, you
@@ -484,14 +485,14 @@ HTML "standards".
 
 =head2 CREATING A NEW QUERY OBJECT (OBJECT-ORIENTED STYLE):
 
-     $query = new CGI3;
+     $query = new CGI;
 
 This will parse the input (from both POST and GET methods) and store
 it into a perl5 object called $query.
 
 =head2 CREATING A NEW QUERY OBJECT FROM AN INPUT FILE
 
-     $query = new CGI3(INPUTFILE);
+     $query = new CGI(INPUTFILE);
 
 If you provide a file handle to the new() method, it will read
 parameters from the file (or STDIN, or whatever).  The file can be in
@@ -504,15 +505,15 @@ Perl purists will be pleased to know that this syntax accepts
 references to file handles, or even references to filehandle globs,
 which is the "official" way to pass a filehandle:
 
-    $query = new CGI3(\*STDIN);
+    $query = new CGI(\*STDIN);
 
-You can also initialize the CGI3 object with a FileHandle or IO::File
+You can also initialize the CGI object with a FileHandle or IO::File
 object.
 
 If you are using the function-oriented interface and want to
-initialize CGI3 state from a file handle, the way to do this is with
+initialize CGI state from a file handle, the way to do this is with
 B<restore_parameters()>.  This will (re)initialize the
-default CGI3 object from the indicated file handle.
+default CGI object from the indicated file handle.
 
     open (IN,"test.in") || die;
     restore_parameters(IN);
@@ -521,29 +522,29 @@ default CGI3 object from the indicated file handle.
 You can also initialize the query object from an associative array
 reference:
 
-    $query = new CGI3( {'dinosaur'=>'barney',
+    $query = new CGI( {'dinosaur'=>'barney',
                'song'=>'I love you',
                'friends'=>[qw/Jessica George Nancy/]}
             );
 
 or from a properly formatted, URL-escaped query string:
 
-    $query = new CGI3('dinosaur=barney&color=purple');
+    $query = new CGI('dinosaur=barney&color=purple');
 
-or from a previously existing CGI3 object (currently this clones the
+or from a previously existing CGI object (currently this clones the
 parameter list, but none of the other object-specific fields, such as
 autoescaping):
 
-    $old_query = new CGI3;
-    $new_query = new CGI3($old_query);
+    $old_query = new CGI;
+    $new_query = new CGI($old_query);
 
 To create an empty query, initialize it from an empty string or hash:
 
-   $empty_query = new CGI3("");
+   $empty_query = new CGI("");
 
        -or-
 
-   $empty_query = new CGI3({});
+   $empty_query = new CGI({});
 
 =head2 FETCHING A LIST OF KEYWORDS FROM THE QUERY:
 
@@ -638,7 +639,7 @@ to avoid conflicts with Perl's built-in delete operator.
 
    $query->delete_all();
 
-This clears the CGI3 object completely.  It might be useful to ensure
+This clears the CGI object completely.  It might be useful to ensure
 that all the defaults are taken when you create a fill-out form.
 
 Use Delete_all() instead if you are using the function call interface.
@@ -673,7 +674,7 @@ The format of the saved file is:
     NAME3=VALUE3
     =
 
-Both name and value are URL escaped.  Multi-valued CGI3 parameters are
+Both name and value are URL escaped.  Multi-valued CGI parameters are
 represented as repeated names.  A session record is delimited by a
 single = symbol.  You can write out multiple records and read them
 back in with several calls to B<new>.  You can do this across several
@@ -681,12 +682,12 @@ sessions by opening the file in append mode, allowing you to create
 primitive guest books, or to keep a history of users' queries.  Here's
 a short example of creating multiple session records:
 
-   use CGI3;
+   use CGI;
 
    open (OUT,">>test.out") || die;
    $records = 5;
    foreach (0..$records) {
-       my $q = new CGI3;
+       my $q = new CGI;
        $q->param(-name=>'counter',-value=>$_);
        $q->save(OUT);
    }
@@ -695,7 +696,7 @@ a short example of creating multiple session records:
    # reopen for reading
    open (IN,"test.out") || die;
    while (!eof(IN)) {
-       my $q = new CGI3(IN);
+       my $q = new CGI(IN);
        print $q->param('counter'),"\n";
    }
 
@@ -712,19 +713,19 @@ interface, the exported name for this method is B<save_parameters()>.
 
 =head2 USING THE FUNCTION-ORIENTED INTERFACE
 
-To use the function-oriented interface, you must specify which CGI3.pm
+To use the function-oriented interface, you must specify which CGI.pm
 routines or sets of routines to import into your script's namespace.
 There is a small overhead associated with this importation, but it
 isn't much.
 
-   use CGI3 <list of methods>;
+   use CGI <list of methods>;
 
 The listed methods will be imported into the current package; you can
-call them directly without creating a CGI3 object first.  This example
+call them directly without creating a CGI object first.  This example
 shows how to import the B<param()> and B<header()>
 methods, and then use them directly:
 
-   use CGI3 'param','header';
+   use CGI 'param','header';
    print header('text/plain');
    $zipcode = param('zipcode');
 
@@ -738,7 +739,7 @@ Here is a list of the function sets you can import:
 
 =item B<:cgi>
 
-Import all CGI3-handling methods, such as B<param()>, B<path_info()>
+Import all CGI-handling methods, such as B<param()>, B<path_info()>
 and the like.
 
 =item B<:form>
@@ -769,36 +770,36 @@ Import "standard" features, 'html2', 'html3', 'form' and 'cgi'.
 
 =item B<:all>
 
-Import all the available methods.  For the full list, see the CGI3.pm
+Import all the available methods.  For the full list, see the CGI.pm
 code, where the variable %TAGS is defined.
 
 =back
 
-If you import a function name that is not part of CGI3.pm, the module
+If you import a function name that is not part of CGI.pm, the module
 will treat it as a new HTML tag and generate the appropriate
 subroutine.  You can then use it like any other HTML tag.  This is to
 provide for the rapidly-evolving HTML "standard."  For example, say
 Microsoft comes out with a new tag called <GRADIENT> (which causes the
 user's desktop to be flooded with a rotating gradient fill until his
-machine reboots).  You don't need to wait for a new version of CGI3.pm
+machine reboots).  You don't need to wait for a new version of CGI.pm
 to start using it immediately:
 
-   use CGI3 qw/:standard :html3 gradient/;
+   use CGI qw/:standard :html3 gradient/;
    print gradient({-start=>'red',-end=>'blue'});
 
-Note that in the interests of execution speed CGI3.pm does B<not> use
+Note that in the interests of execution speed CGI.pm does B<not> use
 the standard L<Exporter> syntax for specifying load symbols.  This may
 change in the future.
 
-If you import any of the state-maintaining CGI3 or form-generating
-methods, a default CGI3 object will be created and initialized
+If you import any of the state-maintaining CGI or form-generating
+methods, a default CGI object will be created and initialized
 automatically the first time you use any of the methods that require
 one to be present.  This includes B<param()>, B<textfield()>,
-B<submit()> and the like.  (If you need direct access to the CGI3
-object, you can find it in the global variable B<$CGI3::Q>).  By
-importing CGI3.pm methods, you can create visually elegant scripts:
+B<submit()> and the like.  (If you need direct access to the CGI
+object, you can find it in the global variable B<$CGI::Q>).  By
+importing CGI.pm methods, you can create visually elegant scripts:
 
-   use CGI3 qw/:standard/;
+   use CGI qw/:standard/;
    print
        header,
        start_html('Simple Script'),
@@ -828,13 +829,13 @@ importing CGI3.pm methods, you can create visually elegant scripts:
 
 In addition to the function sets, there are a number of pragmas that
 you can import.  Pragmas, which are always preceded by a hyphen,
-change the way that CGI3.pm functions in various ways.  Pragmas,
+change the way that CGI.pm functions in various ways.  Pragmas,
 function sets, and individual functions can all be imported in the
 same use() line.  For example, the following use statement imports the
 standard set of functions and disables debugging mode (pragma
 -no_debug):
 
-   use CGI3 qw/:standard -no_debug/;
+   use CGI qw/:standard -no_debug/;
 
 The current list of pragmas is as follows:
 
@@ -842,13 +843,13 @@ The current list of pragmas is as follows:
 
 =item -any
 
-When you I<use CGI3 -any>, then any method that the query object
+When you I<use CGI -any>, then any method that the query object
 doesn't recognize will be interpreted as a new HTML tag.  This allows
 you to support the next I<ad hoc> Netscape or Microsoft HTML
 extension.  This lets you go wild with new and unsupported tags:
 
-   use CGI3 qw(-any);
-   $q=new CGI3;
+   use CGI qw(-any);
+   $q=new CGI;
    print $q->gradient({speed=>'fast',start=>'red',end=>'blue'});
 
 Since using <cite>any</cite> causes any mistyped method name
@@ -859,15 +860,15 @@ all.
 
 This causes the indicated autoloaded methods to be compiled up front,
 rather than deferred to later.  This is useful for scripts that run
-for an extended period of time under FastCGI3 or mod_perl, and for
+for an extended period of time under FastCGI or mod_perl, and for
 those destined to be crunched by Malcom Beattie's Perl compiler.  Use
 it in conjunction with the methods or method families you plan to use.
 
-   use CGI3 qw(-compile :standard :html3);
+   use CGI qw(-compile :standard :html3);
 
 or even
 
-   use CGI3 qw(-compile :all);
+   use CGI qw(-compile :all);
 
 Note that using the -compile pragma in this way will always have
 the effect of importing the compiled functions into the current
@@ -876,14 +877,14 @@ compile() method instead (see below).
 
 =item -nph
 
-This makes CGI3.pm produce a header appropriate for an NPH (no
+This makes CGI.pm produce a header appropriate for an NPH (no
 parsed header) script.  You may need to do other things as well
 to tell the server that the script is NPH.  See the discussion
 of NPH scripts below.
 
 =item -newstyle_urls
 
-Separate the name=value pairs in CGI3 parameter query strings with
+Separate the name=value pairs in CGI parameter query strings with
 semicolons rather than ampersands.  For example:
 
    ?name=fred;age=24;favorite_color=3
@@ -895,8 +896,8 @@ pragma is specified.
 =item -autoload
 
 This overrides the autoloader so that any function in your program
-that is not recognized is referred to CGI3.pm for possible evaluation.
-This allows you to use all the CGI3.pm functions without adding them to
+that is not recognized is referred to CGI.pm for possible evaluation.
+This allows you to use all the CGI.pm functions without adding them to
 your symbol table, which is of concern for mod_perl users who are
 worried about memory consumption.  I<Warning:> when
 I<-autoload> is in effect, you cannot use "poetry mode"
@@ -907,27 +908,27 @@ to the top of your script.
 =item -no_debug
 
 This turns off the command-line processing features.  If you want to
-run a CGI3.pm script from the command line to produce HTML, and you
-don't want it pausing to request CGI3 parameters from standard input or
+run a CGI.pm script from the command line to produce HTML, and you
+don't want it pausing to request CGI parameters from standard input or
 the command line, then use this pragma:
 
-   use CGI3 qw(-no_debug :standard);
+   use CGI qw(-no_debug :standard);
 
 If you'd like to process the command-line parameters but not standard
 input, this should work:
 
-   use CGI3 qw(-no_debug :standard);
+   use CGI qw(-no_debug :standard);
    restore_parameters(join('&',@ARGV));
 
 See the section on debugging for more details.
 
 =item -private_tempfiles
 
-CGI3.pm can process uploaded file. Ordinarily it spools the
+CGI.pm can process uploaded file. Ordinarily it spools the
 uploaded file to a temporary directory, then deletes the file
 when done.  However, this opens the risk of eavesdropping as
 described in the file upload section.
-Another CGI3 script author could peek at this data during the
+Another CGI script author could peek at this data during the
 upload, even if it is confidential information. On Unix systems,
 the -private_tempfiles pragma will cause the temporary file to be unlinked as soon
 as it is opened and before any data is written into it,
@@ -955,14 +956,14 @@ and end_I<tag_name>, as in:
 
 With a few exceptions (described below), start_I<tag_name> and
 end_I<tag_name> functions are not generated automatically when you
-I<use CGI3>.  However, you can specify the tags you want to generate
+I<use CGI>.  However, you can specify the tags you want to generate
 I<start/end> functions for by putting an asterisk in front of their
 name, or, alternatively, requesting either "start_I<tag_name>" or
 "end_I<tag_name>" in the import list.
 
 Example:
 
-  use CGI3 qw/:standard *table start_ul/;
+  use CGI qw/:standard *table start_ul/;
 
 In this example, the following functions are generated in addition to
 the standard ones:
@@ -981,9 +982,9 @@ the standard ones:
 
 =head1 GENERATING DYNAMIC DOCUMENTS
 
-Most of CGI3.pm's functions deal with creating documents on the fly.
+Most of CGI.pm's functions deal with creating documents on the fly.
 Generally you will produce the HTTP header first, followed by the
-document itself.  CGI3.pm provides functions for generating HTTP
+document itself.  CGI.pm provides functions for generating HTTP
 headers of various types as well as for generating HTML.  For creating
 GIF images, see the GD.pm module.
 
@@ -993,7 +994,7 @@ append to a string, or save to a file for later use.
 
 =head2 CREATING A STANDARD HTTP HEADER:
 
-Normally the first thing you will do in any CGI3 script is print out an
+Normally the first thing you will do in any CGI script is print out an
 HTTP header.  This tells the browser what type of document to expect,
 and gives other optional information, such as the language, expiration
 date, and whether to cache the document.  The header can also be
@@ -1026,7 +1027,7 @@ message.  For example, you can specify 204, "No response" to create a
 script that tells the browser to do nothing at all.
 
 The last example shows the named argument style for passing arguments
-to the CGI3 methods using named parameters.  Recognized parameters are
+to the CGI methods using named parameters.  Recognized parameters are
 B<-type>, B<-status>, B<-expires>, and B<-cookie>.  Any other named
 parameters will be stripped of their initial hyphens and turned into
 header fields, allowing you to specify any HTTP header you desire.
@@ -1034,7 +1035,7 @@ Internal underscores will be turned into hyphens:
 
     print $query->header(-Content_length=>3002);
 
-Most browsers will not cache the output from CGI3 scripts.  Every time
+Most browsers will not cache the output from CGI scripts.  Every time
 the browser reloads the page, the script is invoked anew.  You can
 change this behavior with the B<-expires> parameter.  When you specify
 an absolute or relative expiration interval with this parameter, some
@@ -1103,7 +1104,7 @@ expect all their scripts to be NPH.
                 -style=>{'src'=>'/styles/style1.css'},
                 -BGCOLOR=>'blue');
 
-After creating the HTTP header, most CGI3 scripts will start writing
+After creating the HTTP header, most CGI scripts will start writing
 out an HTML document.  The start_html() routine creates the top of the
 page, along with a lot of optional information that controls the
 page's appearance and behavior.
@@ -1173,7 +1174,7 @@ This block will be placed within a <SCRIPT> block inside the HTML (not
 HTTP) header.  The block is placed in the header in order to give your
 page a fighting chance of having all its JavaScript functions in place
 even if the user presses the stop button before the page has loaded
-completely.  CGI3.pm attempts to format the script in such a way that
+completely.  CGI.pm attempts to format the script in such a way that
 JavaScript-naive browsers will not choke on the code: unfortunately
 there are some browsers, such as Chimera for Unix, that get confused
 by it nevertheless.
@@ -1183,7 +1184,7 @@ code to execute when the page is respectively opened and closed by the
 browser.  Usually these parameters are calls to functions defined in the
 B<-script> field:
 
-      $query = new CGI3;
+      $query = new CGI;
       print $query->header;
       $JSCRIPT=<<END;
       // Ask a silly question
@@ -1210,7 +1211,7 @@ off).
 
 Netscape 3.0 recognizes several attributes of the <SCRIPT> tag,
 including LANGUAGE and SRC.  The latter is particularly interesting,
-as it allows you to keep the JavaScript code in a file or CGI3 script
+as it allows you to keep the JavaScript code in a file or CGI script
 rather than cluttering up each page with the source.  To use these
 attributes pass a HASH reference in the B<-script> parameter containing
 one or more of -language, -src, or -code:
@@ -1249,7 +1250,7 @@ of JavaScript.  Example:
                              );
      </pre>
 
-If this looks a bit extreme, take my advice and stick with straight CGI3 scripting.
+If this looks a bit extreme, take my advice and stick with straight CGI scripting.
 
 See
 
@@ -1368,7 +1369,7 @@ as a synonym.
 
    $color = $query-&gt;url_param('color');
 
-It is possible for a script to receive CGI3 parameters in the URL as
+It is possible for a script to receive CGI parameters in the URL as
 well as in the fill-out form by creating a form that POSTs to a URL
 containing a query string (a "?" mark followed by arguments).  The
 B<param()> method will always return the contents of the POSTed
@@ -1379,13 +1380,13 @@ parameters, but not set them.
 
 
 Under no circumstances will the contents of the URL query string
-interfere with similarly-named CGI3 parameters in POSTed forms.  If you
+interfere with similarly-named CGI parameters in POSTed forms.  If you
 try to mix a URL query string with a form submitted with the GET
 method, the results will not be what you expect.
 
 =head1 CREATING STANDARD HTML ELEMENTS:
 
-CGI3.pm defines general HTML shortcut methods for most, if not all of
+CGI.pm defines general HTML shortcut methods for most, if not all of
 the HTML 3 and HTML 4 tags.  HTML shortcuts are named after a single
 HTML element and return a fragment of HTML text that you can then
 print or manipulate as you like.  Each shortcut returns a fragment of
@@ -1394,7 +1395,7 @@ commonly, print out so that it displays in the browser window.
 
 This example shows how to use the HTML methods:
 
-   $q = new CGI3;
+   $q = new CGI;
    print $q->blockquote(
              "Many years ago on the island of",
              $q->a({href=>"http://crete.org/"},"Crete"),
@@ -1417,7 +1418,7 @@ If you find the syntax for calling the HTML shortcuts awkward, you can
 import them into your namespace and dispense with the object syntax
 completely (see the next section for more details):
 
-   use CGI3 ':standard';
+   use CGI ':standard';
    print blockquote(
       "Many years ago on the island of",
       a({href=>"http://crete.org/"},"Crete"),
@@ -1459,7 +1460,7 @@ that points to an undef string:
 
    print ol({compact=>undef},li('one'),li('two'),li('three'));
 
-Prior to CGI3.pm version 2.41, providing an empty ('') string as an
+Prior to CGI.pm version 2.41, providing an empty ('') string as an
 attribute argument was the same as providing undef.  However, this has
 changed in order to accommodate those who want to create tags of the form
 <IMG ALT="">.  The difference is shown in these two pieces of code:
@@ -1514,7 +1515,7 @@ It will ordinarily return the string that you probably expect, namely:
    <BLOCKQUOTE><EM>Hi</EM> mom!</BLOCKQUOTE>
 
 Note the space between the element "Hi" and the element "mom!".
-CGI3.pm puts the extra space there using array interpolation, which is
+CGI.pm puts the extra space there using array interpolation, which is
 controlled by the magic $" variable.  Sometimes this extra space is
 not what you want, for example, when you are trying to align a series
 of images.  In this case, you can simply change the value of $" to an
@@ -1558,7 +1559,7 @@ See their respective sections.
 By default, all the HTML produced by these functions comes out as one
 long line without carriage returns or indentation. This is yuck, but
 it does reduce the size of the documents by 10-20%.  To get
-pretty-printed output, please use L<CGI3::Pretty>, a subclass
+pretty-printed output, please use L<CGI::Pretty>, a subclass
 contributed by Brian Paulsen.
 
 =head1 CREATING FILL-OUT FORMS:
@@ -1593,9 +1594,9 @@ escaped according to HTML rules.  This means that you can safely use
 "<CLICK ME>" as the label for a button.  However, it also interferes with
 your ability to incorporate special HTML character sequences, such as &Aacute;,
 into your fields.  If you wish to turn off automatic escaping, call the
-autoEscape() method with a false value immediately after creating the CGI3 object:
+autoEscape() method with a false value immediately after creating the CGI object:
 
-   $query = new CGI3;
+   $query = new CGI;
    $query->autoEscape(undef);
 
 
@@ -1643,10 +1644,10 @@ values are possible:
 =item B<application/x-www-form-urlencoded>
 
 This is the older type of encoding used by all browsers prior to
-Netscape 2.0.  It is compatible with many CGI3 scripts and is
+Netscape 2.0.  It is compatible with many CGI scripts and is
 suitable for short fields containing text data.  For your
-convenience, CGI3.pm stores the name of this encoding
-type in B<$CGI3::URL_ENCODED>.
+convenience, CGI.pm stores the name of this encoding
+type in B<$CGI::URL_ENCODED>.
 
 =item B<multipart/form-data>
 
@@ -1654,11 +1655,11 @@ This is the newer type of encoding introduced by Netscape 2.0.
 It is suitable for forms that contain very large fields or that
 are intended for transferring binary data.  Most importantly,
 it enables the "file upload" feature of Netscape 2.0 forms.  For
-your convenience, CGI3.pm stores the name of this encoding type
-in B<&CGI3::MULTIPART>
+your convenience, CGI.pm stores the name of this encoding type
+in B<&CGI::MULTIPART>
 
 Forms that use this type of encoding are not easily interpreted
-by CGI3 scripts unless they use CGI3.pm or another library designed
+by CGI scripts unless they use CGI.pm or another library designed
 to handle them.
 
 =back
@@ -1800,7 +1801,7 @@ recognized.  See textfield().
 filefield() will return a file upload field for Netscape 2.0 browsers.
 In order to take full advantage of this I<you must use the new
 multipart encoding scheme> for the form.  You can do this either
-by calling B<startform()> with an encoding type of B<$CGI3::MULTIPART>,
+by calling B<startform()> with an encoding type of B<$CGI::MULTIPART>,
 or by calling the new method B<start_multipart_form()> instead of
 vanilla B<startform()>.
 
@@ -2415,14 +2416,14 @@ display.
 
 Netscape browsers versions 1.1 and higher, and all versions of
 Internet Explorer, support a so-called "cookie" designed to help
-maintain state within a browser session.  CGI3.pm has several methods
+maintain state within a browser session.  CGI.pm has several methods
 that support cookies.
 
-A cookie is a name=value pair much like the named parameters in a CGI3
-query string.  CGI3 scripts create one or more cookies and send
+A cookie is a name=value pair much like the named parameters in a CGI
+query string.  CGI scripts create one or more cookies and send
 them to the browser in the HTTP header.  The browser maintains a list
 of cookies that belong to a particular Web server, and returns them
-to the CGI3 script during subsequent interactions.
+to the CGI script during subsequent interactions.
 
 In addition to the required name=value pair, each cookie has several
 optional attributes:
@@ -2458,12 +2459,12 @@ if you specify the path "/cgi-bin", then the cookie will be returned
 to each of the scripts "/cgi-bin/tally.pl", "/cgi-bin/order.pl",
 and "/cgi-bin/customer_service/complain.pl", but not to the script
 "/cgi-private/site_admin.pl".  By default, path is set to "/", which
-causes the cookie to be sent to any CGI3 script on your site.
+causes the cookie to be sent to any CGI script on your site.
 
 =item 4. a "secure" flag
 
 If the "secure" attribute is set, the cookie will only be sent to your
-script if the CGI3 request is occurring on a secure channel, such as SSL.
+script if the CGI request is occurring on a secure channel, such as SSL.
 
 =back
 
@@ -2485,7 +2486,7 @@ B<cookie()> creates a new cookie.  Its parameters include:
 
 The name of the cookie (required).  This can be any string at all.
 Although browsers limit their cookie names to non-whitespace
-alphanumeric characters, CGI3.pm removes this restriction by escaping
+alphanumeric characters, CGI.pm removes this restriction by escaping
 and unescaping cookies behind the scenes.
 
 =item B<-value>
@@ -2537,17 +2538,17 @@ To create multiple cookies, give header() an array reference:
 To retrieve a cookie, request it by name by calling cookie()
 method without the B<-value> parameter:
 
-    use CGI3;
-    $query = new CGI3;
+    use CGI;
+    $query = new CGI;
     %answers = $query->cookie(-name=>'answers');
     # $query->cookie('answers') will work too!
 
-The cookie and CGI3 namespaces are separate.  If you have a parameter
+The cookie and CGI namespaces are separate.  If you have a parameter
 named 'answers' and a cookie named 'answers', the values retrieved by
 param() and cookie() are independent of each other.  However, it's
-simple to turn a CGI3 parameter into a cookie, and vice-versa:
+simple to turn a CGI parameter into a cookie, and vice-versa:
 
-   # turn a CGI3 parameter into a cookie
+   # turn a CGI parameter into a cookie
    $c=$q->cookie(-name=>'answers',-value=>[$q->param('answers')]);
    # vice-versa
    $q->param(-name=>'answers',-value=>[$q->cookie('answers')]);
@@ -2557,7 +2558,7 @@ cookies effectively.
 
 =head1 WORKING WITH FRAMES
 
-It's possible for CGI3.pm scripts to write into several browser panels
+It's possible for CGI.pm scripts to write into several browser panels
 and windows using the HTML 4 frame mechanism.  There are three
 techniques for defining new frames programmatically:
 
@@ -2571,7 +2572,7 @@ document that defines the frames on the page.  Specify your script(s)
 (with appropriate parameters) as the SRC for each of the frames.
 
 There is no specific support for creating <FRAMESET> sections
-in CGI3.pm, but the HTML is very simple to write.  See the frame
+in CGI.pm, but the HTML is very simple to write.  See the frame
 documentation in Netscape's home pages for details
 
   http://home.netscape.com/assist/net_sites/frames.html
@@ -2592,7 +2593,7 @@ details.
 =item 3. Specify the destination for the document in the <FORM> tag
 
 You can specify the frame to load in the FORM tag itself.  With
-CGI3.pm it looks like this:
+CGI.pm it looks like this:
 
     print $q->startform(-target=>'ResultsWindow');
 
@@ -2608,7 +2609,7 @@ side-by-side frames.
 
 =head1 LIMITED SUPPORT FOR CASCADING STYLE SHEETS
 
-CGI3.pm has limited support for HTML3's cascading style sheets (css).
+CGI.pm has limited support for HTML3's cascading style sheets (css).
 To incorporate a stylesheet into your document, pass the
 start_html() method a B<-style> parameter.  The value of this
 parameter may be a scalar, in which case it is incorporated directly
@@ -2645,7 +2646,7 @@ B<span()> method available.  Here's a quick and dirty example of using
 CSS's.  See the CSS specification at
 http://www.w3.org/pub/WWW/TR/Wd-css-1.html for more information.
 
-    use CGI3 qw/:standard :html3/;
+    use CGI qw/:standard :html3/;
 
     #here's a stylesheet incorporated directly into the page
     $newStyle=<<END;
@@ -2663,11 +2664,11 @@ http://www.w3.org/pub/WWW/TR/Wd-css-1.html for more information.
     -->
     END
     print header();
-    print start_html( -title=>'CGI3 with Style',
+    print start_html( -title=>'CGI with Style',
               -style=>{-src=>'http://www.capricorn.com/style/st1.css',
                        -code=>$newStyle}
                  );
-    print h1('CGI3 with Style'),
+    print h1('CGI with Style'),
           p({-class=>'Tip'},
         "Better read the cascading style sheet spec before playing with this!"),
           span({-style=>'color: magenta'},
@@ -2732,10 +2733,10 @@ Produces something that looks like:
     </UL>
     </UL>
 
-As a shortcut, you can interpolate the entire CGI3 object into a string
+As a shortcut, you can interpolate the entire CGI object into a string
 and it will be replaced with the a nice HTML dump shown above:
 
-    $query=new CGI3;
+    $query=new CGI;
     print "<H2>Current Values</H2> $query\n";
 
 =head1 FETCHING ENVIRONMENT VARIABLES
@@ -2770,7 +2771,7 @@ structure.  You can separate it into individual cookies by splitting
 on the character sequence "; ".  Called with the name of a cookie,
 retrieves the B<unescaped> form of the cookie.  You can use the
 regular cookie() method to get the names, or use the raw_fetch()
-method from the CGI3::Cookie module.
+method from the CGI::Cookie module.
 
 =item B<user_agent()>
 
@@ -2793,7 +2794,7 @@ execute the additional path information as a Perl script.
 If you use the ordinary file associations mapping, the
 path information will be present in the environment,
 but incorrect.  The best thing to do is to avoid using additional
-path information in CGI3 scripts destined for use with IIS.
+path information in CGI scripts destined for use with IIS.
 
 =item B<path_translated()>
 
@@ -2864,24 +2865,24 @@ slight performance benefits, but is of most use for taking advantage
 of HTTP extensions that are not directly supported by your server,
 such as server push and PICS headers.
 
-Servers use a variety of conventions for designating CGI3 scripts as
+Servers use a variety of conventions for designating CGI scripts as
 NPH.  Many Unix servers look at the beginning of the script's name for
 the prefix "nph-".  The Macintosh WebSTAR server and Microsoft's
 Internet Information Server, in contrast, try to decide whether a
 program is an NPH script by examining the first line of script output.
 
 
-CGI3.pm supports NPH scripts with a special NPH mode.  When in this
-mode, CGI3.pm will output the necessary extra header information when
+CGI.pm supports NPH scripts with a special NPH mode.  When in this
+mode, CGI.pm will output the necessary extra header information when
 the header() and redirect() methods are
 called.
 
 The Microsoft Internet Information Server requires NPH mode.  As of version
-2.30, CGI3.pm will automatically detect when the script is running under IIS
+2.30, CGI.pm will automatically detect when the script is running under IIS
 and put itself into this mode.  You do not need to do this manually, although
 it won't hurt anything if you do.
 
-There are a number of ways to put CGI3.pm into NPH mode:
+There are a number of ways to put CGI.pm into NPH mode:
 
 =over 4
 
@@ -2890,13 +2891,13 @@ There are a number of ways to put CGI3.pm into NPH mode:
 Simply add the "-nph" pragmato the list of symbols to be imported into
 your script:
 
-      use CGI3 qw(:standard -nph)
+      use CGI qw(:standard -nph)
 
 =item By calling the B<nph()> method:
 
-Call B<nph()> with a non-zero parameter at any point after using CGI3.pm in your program.
+Call B<nph()> with a non-zero parameter at any point after using CGI.pm in your program.
 
-      CGI3->nph(1)
+      CGI->nph(1)
 
 =item By using B<-nph> parameters in the B<header()> and B<redirect()>  statements:
 
@@ -2906,7 +2907,7 @@ Call B<nph()> with a non-zero parameter at any point after using CGI3.pm in your
 
 =head1 Server Push
 
-CGI3.pm provides three simple functions for producing multipart
+CGI.pm provides three simple functions for producing multipart
 documents of the type needed to implement server push.  These
 functions were graciously provided by Ed Jordan <ed@fidalgo.net>.  To
 import these into your namespace, you must import the ":push" set.
@@ -2916,7 +2917,7 @@ You are also advised to put the script into NPH mode and to set $| to
 Here is a simple script that demonstrates server push:
 
   #!/usr/local/bin/perl
-  use CGI3 qw/:push -nph/;
+  use CGI qw/:push -nph/;
   $| = 1;
   print multipart_init(-boundary=>'----------------here we go!');
   while (1) {
@@ -2940,7 +2941,7 @@ a second, and begins again.
 
 Initialize the multipart system.  The -boundary argument specifies
 what MIME boundary string to use to separate parts of the document.
-If not provided, CGI3.pm chooses a reasonable boundary for you.
+If not provided, CGI.pm chooses a reasonable boundary for you.
 
 =item multipart_start()
 
@@ -2959,49 +2960,49 @@ multipart_start().
 =back
 
 Users interested in server push applications should also have a look
-at the CGI3::Push module.
+at the CGI::Push module.
 
 =head1 Avoiding Denial of Service Attacks
 
-A potential problem with CGI3.pm is that, by default, it attempts to
+A potential problem with CGI.pm is that, by default, it attempts to
 process form POSTings no matter how large they are.  A wily hacker
-could attack your site by sending a CGI3 script a huge POST of many
-megabytes.  CGI3.pm will attempt to read the entire POST into a
+could attack your site by sending a CGI script a huge POST of many
+megabytes.  CGI.pm will attempt to read the entire POST into a
 variable, growing hugely in size until it runs out of memory.  While
 the script attempts to allocate the memory the system may slow down
 dramatically.  This is a form of denial of service attack.
 
-Another possible attack is for the remote user to force CGI3.pm to
-accept a huge file upload.  CGI3.pm will accept the upload and store it
+Another possible attack is for the remote user to force CGI.pm to
+accept a huge file upload.  CGI.pm will accept the upload and store it
 in a temporary directory even if your script doesn't expect to receive
-an uploaded file.  CGI3.pm will delete the file automatically when it
+an uploaded file.  CGI.pm will delete the file automatically when it
 terminates, but in the meantime the remote user may have filled up the
 server's disk space, causing problems for other programs.
 
 The best way to avoid denial of service attacks is to limit the amount
-of memory, CPU time and disk space that CGI3 scripts can use.  Some Web
+of memory, CPU time and disk space that CGI scripts can use.  Some Web
 servers come with built-in facilities to accomplish this. In other
 cases, you can use the shell I<limit> or I<ulimit>
-commands to put ceilings on CGI3 resource usage.
+commands to put ceilings on CGI resource usage.
 
 
-CGI3.pm also has some simple built-in protections against denial of
+CGI.pm also has some simple built-in protections against denial of
 service attacks, but you must activate them before you can use them.
-These take the form of two global variables in the CGI3 name space:
+These take the form of two global variables in the CGI name space:
 
 =over 4
 
-=item B<$CGI3::POST_MAX>
+=item B<$CGI::POST_MAX>
 
 If set to a non-negative integer, this variable puts a ceiling
-on the size of POSTings, in bytes.  If CGI3.pm detects a POST
+on the size of POSTings, in bytes.  If CGI.pm detects a POST
 that is greater than the ceiling, it will immediately exit with an error
 message.  This value will affect both ordinary POSTs and
 multipart POSTs, meaning that it limits the maximum size of file
 uploads as well.  You should set this to a reasonably high
 value, such as 1 megabyte.
 
-=item B<$CGI3::DISABLE_UPLOADS>
+=item B<$CGI::DISABLE_UPLOADS>
 
 If set to a non-zero value, this will disable file uploads
 completely.  Other fill-out form values will work as usual.
@@ -3016,14 +3017,14 @@ You can use these variables in either of two ways.
 
 Set the variable at the top of the script, right after the "use" statement:
 
-    use CGI3 qw/:standard/;
-    use CGI3::Carp 'fatalsToBrowser';
-    $CGI3::POST_MAX=1024 * 100;  # max 100K posts
-    $CGI3::DISABLE_UPLOADS = 1;  # no uploads
+    use CGI qw/:standard/;
+    use CGI::Carp 'fatalsToBrowser';
+    $CGI::POST_MAX=1024 * 100;  # max 100K posts
+    $CGI::DISABLE_UPLOADS = 1;  # no uploads
 
 =item B<2. Globally for all scripts>
 
-Open up CGI3.pm, find the definitions for $POST_MAX and
+Open up CGI.pm, find the definitions for $POST_MAX and
 $DISABLE_UPLOADS, and set them to the desired values.  You'll
 find them towards the top of the file in a subroutine named
 initialize_globals().
@@ -3031,13 +3032,13 @@ initialize_globals().
 =back
 
 Since an attempt to send a POST larger than $POST_MAX bytes
-will cause a fatal error, you might want to use CGI3::Carp to echo the
+will cause a fatal error, you might want to use CGI::Carp to echo the
 fatal error message to the browser window as shown in the example
 above.  Otherwise the remote user will see only a generic "Internal
-Server" error message.  See the L<CGI3::Carp> manual page for more
+Server" error message.  See the L<CGI::Carp> manual page for more
 details.
 
-=head1 COMPATIBILITY WITH CGI3-LIB.PL
+=head1 COMPATIBILITY WITH CGI-LIB.PL
 
 To make it easier to port existing programs that use cgi-lib.pl
 the compatibility routine "ReadParse" is provided.  Porting is
@@ -3049,11 +3050,11 @@ OLD VERSION
     print "The value of the antique is $in{antique}.\n";
 
 NEW VERSION
-    use CGI3;
-    CGI3::ReadParse
+    use CGI;
+    CGI::ReadParse
     print "The value of the antique is $in{antique}.\n";
 
-CGI3.pm's ReadParse() routine creates a tied variable named %in,
+CGI.pm's ReadParse() routine creates a tied variable named %in,
 which can be accessed to obtain the query variables.  Like
 ReadParse, you can also provide your own variable.  Infrequently
 used features of ReadParse, such as the creation of @in and $in
@@ -3062,12 +3063,12 @@ variables, are not supported.
 Once you use ReadParse, you can retrieve the query object itself
 this way:
 
-    $q = $in{CGI3};
+    $q = $in{CGI};
     print $q->textfield(-name=>'wow',
             -value=>'does this really work?');
 
 This allows you to start using the more interesting features
-of CGI3.pm without rewriting your old scripts from scratch.
+of CGI.pm without rewriting your old scripts from scratch.
 
 =head1 AUTHOR INFORMATION
 
@@ -3077,7 +3078,7 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 Address bug reports and comments to: lstein@cshl.org.  When sending
-bug reports, please provide the version of CGI3.pm, the version of
+bug reports, please provide the version of CGI.pm, the version of
 Perl, the name and version of your Web server, and the name and
 version of the operating system you are using.  If the problem is even
 remotely browser dependent, please provide information about the
@@ -3140,13 +3141,13 @@ for suggestions and bug fixes.
 
     #!/usr/local/bin/perl
 
-    use CGI3;
+    use CGI;
 
-    $query = new CGI3;
+    $query = new CGI;
 
     print $query->header;
-    print $query->start_html("Example CGI3.pm Form");
-    print "<H1> Example CGI3.pm Form</H1>\n";
+    print $query->start_html("Example CGI.pm Form");
+    print "<H1> Example CGI.pm Form</H1>\n";
     &print_prompt($query);
     &do_work($query);
     &print_tail;
@@ -3224,17 +3225,18 @@ for suggestions and bug fixes.
 =head1 BUGS
 
 This module has grown large and monolithic.  Furthermore it's doing many
-things, such as handling URLs, parsing CGI3 input, writing HTML, etc., that
+things, such as handling URLs, parsing CGI input, writing HTML, etc., that
 are also done in the LWP modules. It should be discarded in favor of
-the CGI3::* modules, but somehow I continue to work on it.
+the CGI::* modules, but somehow I continue to work on it.
 
 Note that the code is truly contorted in order to avoid spurious
 warnings when programs are run with the B<-w> switch.
 
 =head1 SEE ALSO
 
-L<CGI3::Carp>, L<URI::URL>, L<CGI3::Form>, L<CGI3::Push>,
-L<CGI3::Fast>, L<CGI3::Pretty>
+L<CGI::Carp>, L<URI::URL>, L<CGI::Request>, L<CGI::MiniSvr>,
+L<CGI::Base>, L<CGI::Form>, L<CGI::Push>, L<CGI::Fast>,
+L<CGI::Pretty>
 
 =cut
 

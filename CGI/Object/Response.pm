@@ -1,8 +1,8 @@
-package CGI3::Object::Response;
+package CGI::Object::Response;
 
-@ISA = 'CGI3::Object';
+@ISA = 'CGI::Object';
 
-use CGI3::Object;
+use CGI::Object;
 use integer;
 
 sub fix
@@ -24,14 +24,14 @@ sub header {
     my $self = shift;
     my(@header);
 
-    return undef if $self->{'.header_printed'}++ and $CGI3::HEADERS_ONCE;
+    return undef if $self->{'.header_printed'}++ and $CGI::HEADERS_ONCE;
 
     my($type,$status,$cookie,$target,$expires,$nph,$charset,@other) =
     $self->rearrange({TYPE=>0,CONTENT_TYPE=>0,'CONTENT-TYPE'=>0,
               STATUS=>1,COOKIE=>2,COOKIES=>2,TARGET=>3,EXPIRES=>4,NPH=>5,CHARSET=>6},
               [ 'text/html','','','','','','ISO-8859-1'],\&fix,@_);
 
-    $nph ||= $CGI3::NPH;
+    $nph ||= $CGI::NPH;
 
     if (defined $charset) {
       $self->charset($charset);
@@ -52,7 +52,7 @@ sub header {
     if ($cookie) {
         my(@cookie) = ref($cookie) && ref($cookie) eq 'ARRAY' ? @{$cookie} : $cookie;
         foreach (@cookie) {
-            my $cs = UNIVERSAL::isa($_,'CGI3::Cookie') ? $_->as_string : $_;
+            my $cs = UNIVERSAL::isa($_,'CGI::Cookie') ? $_->as_string : $_;
             push(@header,"Set-Cookie: $cs") if $cs ne '';
         }
     }
@@ -65,9 +65,9 @@ sub header {
     push(@header,@other);
     push(@header,"Content-Type: $type") if $type ne '';
 
-    my $header = join($CGI3::CRLF,@header)."${CGI3::CRLF}${CGI3::CRLF}";
+    my $header = join($CGI::CRLF,@header)."${CGI::CRLF}${CGI::CRLF}";
 
-    if ($CGI3::MOD_PERL and not $nph) {
+    if ($CGI::MOD_PERL and not $nph) {
         my $r = Apache->request;
         $r->send_cgi_header($header);
         return '';
@@ -117,8 +117,8 @@ sub redirect {
 ####
 sub nph {
     my $self = shift;
-    $CGI3::NPH = shift if @_;
-    return $CGI3::NPH;
+    $CGI::NPH = shift if @_;
+    return $CGI::NPH;
 }
 
 #### Method: default_dtd
@@ -126,10 +126,11 @@ sub nph {
 ####
 sub default_dtd {
     my $self = shift;
-    $CGI3::DEFAULT_DTD = shift if @_;
-    return $CGI3::DEFAULT_DTD;
+    $CGI::DEFAULT_DTD = shift if @_;
+    return $CGI::DEFAULT_DTD;
 }
 
 1;
 
+# CGI3 alpha (not for public distribution)
 # Copyright Lincoln Stein & David James 1999
