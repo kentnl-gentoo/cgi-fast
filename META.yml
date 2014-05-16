@@ -28,4 +28,4 @@ resources:
   homepage: https://metacpan.org/module/CGI::Fast
   license: http://dev.perl.org/licenses/
   repository: https://github.com/leejo/cgi-fast
-version: 1.10_01
+version: 1.10_02
