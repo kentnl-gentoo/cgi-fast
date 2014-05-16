@@ -12,7 +12,7 @@
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : "2"
    },
-   "name" : "CGI.pm",
+   "name" : "CGI-Fast",
    "no_index" : {
       "directory" : [
          "t",
@@ -29,6 +29,7 @@
       },
       "runtime" : {
          "requires" : {
+            "CGI" : "3.6502",
             "FCGI" : "0.67",
             "File::Spec" : "0.82",
             "Test::More" : "0.98",
@@ -40,15 +41,15 @@
    "release_status" : "testing",
    "resources" : {
       "bugtracker" : {
-         "web" : "https://github.com/leejo/CGI.pm/issues"
+         "web" : "https://github.com/leejo/cgi-fast/issues"
       },
-      "homepage" : "https://metacpan.org/module/CGI",
+      "homepage" : "https://metacpan.org/module/CGI::Fast",
       "license" : [
          "http://dev.perl.org/licenses/"
       ],
       "repository" : {
-         "url" : "https://github.com/leejo/CGI.pm"
+         "url" : "https://github.com/leejo/cgi-fast"
       }
    },
-   "version" : "3.65_01"
+   "version" : "1.10_01"
 }
