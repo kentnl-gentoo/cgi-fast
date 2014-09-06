@@ -1,155 +1,197 @@
-NAME
-    CGI::Fast - CGI Interface for Fast CGI
+[![Build Status](https://travis-ci.org/leejo/cgi-fast.svg?branch=master)](https://travis-ci.org/leejo/cgi-fast)
 
-SYNOPSIS
-        use CGI::Fast
-            socket_path  => '9000',
-            listen_queue => 50;
+# NAME
 
-        $COUNTER = 0;
+CGI::Fast - CGI Interface for Fast CGI
 
-        while (new CGI::Fast) {
-            print header;
-            print start_html("Fast CGI Rocks");
-            print
-            h1("Fast CGI Rocks"),
-            "Invocation number ",b($COUNTER++),
-                " PID ",b($$),".",
-            hr;
-            print end_html;
-        }
+# SYNOPSIS
 
-DESCRIPTION
-    CGI::Fast is a subclass of the CGI object created by CGI.pm. It is
-    specialized to work with the FCGI module, which greatly speeds up CGI
-    scripts by turning them into persistently running server processes.
-    Scripts that perform time-consuming initialization processes, such as
-    loading large modules or opening persistent database connections, will
-    see large performance improvements.
+    use CGI::Fast
+        socket_path  => '9000',
+        listen_queue => 50;
 
-OTHER PIECES OF THE PUZZLE
-    In order to use CGI::Fast you'll need the FCGI module. See
-    http://www.cpan.org/ for details.
+    $COUNTER = 0;
 
-WRITING FASTCGI PERL SCRIPTS
-    FastCGI scripts are persistent: one or more copies of the script are
-    started up when the server initializes, and stay around until the server
-    exits or they die a natural death. After performing whatever one-time
-    initialization it needs, the script enters a loop waiting for incoming
-    connections, processing the request, and waiting some more.
+    # optional, will default to STDOUT, STDIN, STDERR
+    CGI::Fast->file_handles({
+        fcgi_input_file_handle  => IO::Handle->new,
+        fcgi_output_file_handle => IO::Handle->new,
+        fcgi_error_file_handle  => IO::Handle->new,
+    });
 
-    A typical FastCGI script will look like this:
+    while (new CGI::Fast) {
+        print header;
+        print start_html("Fast CGI Rocks");
+        print
+        h1("Fast CGI Rocks"),
+        "Invocation number ",b($COUNTER++),
+            " PID ",b($$),".",
+        hr;
+        print end_html;
+    }
 
-        #!perl
-        use CGI::Fast;
-        do_some_initialization();
-        while ($q = new CGI::Fast) {
-            process_request($q);
-        }
+# DESCRIPTION
 
-    Each time there's a new request, CGI::Fast returns a CGI object to your
-    loop. The rest of the time your script waits in the call to new(). When
-    the server requests that your script be terminated, new() will return
-    undef. You can of course exit earlier if you choose. A new version of
-    the script will be respawned to take its place (this may be necessary in
-    order to avoid Perl memory leaks in long-running scripts).
+CGI::Fast is a subclass of the CGI object created by CGI.pm.  It is
+specialized to work with the FCGI module, which greatly speeds up CGI
+scripts by turning them into persistently running server processes.
+Scripts that perform time-consuming initialization processes, such as
+loading large modules or opening persistent database connections, will
+see large performance improvements.
 
-    CGI.pm's default CGI object mode also works. Just modify the loop this
-    way:
+# OTHER PIECES OF THE PUZZLE
 
-        while (new CGI::Fast) {
-            process_request();
-        }
+In order to use CGI::Fast you'll need the FCGI module.  See
+http://www.cpan.org/ for details.
 
-    Calls to header(), start_form(), etc. will all operate on the current
-    request.
+# WRITING FASTCGI PERL SCRIPTS
 
-INSTALLING FASTCGI SCRIPTS
-    See the FastCGI developer's kit documentation for full details. On the
-    Apache server, the following line must be added to srm.conf:
+FastCGI scripts are persistent: one or more copies of the script
+are started up when the server initializes, and stay around until
+the server exits or they die a natural death.  After performing
+whatever one-time initialization it needs, the script enters a
+loop waiting for incoming connections, processing the request, and
+waiting some more.
 
-        AddType application/x-httpd-fcgi .fcgi
+A typical FastCGI script will look like this:
 
-    FastCGI scripts must end in the extension .fcgi. For each script you
-    install, you must add something like the following to srm.conf:
+    #!perl
+    use CGI::Fast;
+    do_some_initialization();
+    while ($q = new CGI::Fast) {
+        process_request($q);
+    }
 
-        FastCgiServer /usr/etc/httpd/fcgi-bin/file_upload.fcgi -processes 2
+Each time there's a new request, CGI::Fast returns a
+CGI object to your loop.  The rest of the time your script
+waits in the call to new().  When the server requests that
+your script be terminated, new() will return undef.  You can
+of course exit earlier if you choose.  A new version of the
+script will be respawned to take its place (this may be
+necessary in order to avoid Perl memory leaks in long-running
+scripts).
 
-    This instructs Apache to launch two copies of file_upload.fcgi at
-    startup time.
+CGI.pm's default CGI object mode also works.  Just modify the loop
+this way:
 
-USING FASTCGI SCRIPTS AS CGI SCRIPTS
-    Any script that works correctly as a FastCGI script will also work
-    correctly when installed as a vanilla CGI script. However it will not
-    see any performance benefit.
+    while (new CGI::Fast) {
+        process_request();
+    }
 
-EXTERNAL FASTCGI SERVER INVOCATION
-    FastCGI supports a TCP/IP transport mechanism which allows FastCGI
-    scripts to run external to the webserver, perhaps on a remote machine.
-    To configure the webserver to connect to an external FastCGI server, you
-    would add the following to your srm.conf:
+Calls to header(), start\_form(), etc. will all operate on the
+current request.
 
-        FastCgiExternalServer /usr/etc/httpd/fcgi-bin/file_upload.fcgi -host sputnik:8888
+# INSTALLING FASTCGI SCRIPTS
 
-    Two environment variables affect how the `CGI::Fast' object is created,
-    allowing `CGI::Fast' to be used as an external FastCGI server. (See
-    `FCGI' documentation for `FCGI::OpenSocket' for more information.)
+See the FastCGI developer's kit documentation for full details.  On
+the Apache server, the following line must be added to srm.conf:
 
-    You can set these as ENV variables or imports in the use CGI::Fast
-    statement. If the ENV variables are set then these will be favoured so
-    you can override the import statements on the command line, etc.
+    AddType application/x-httpd-fcgi .fcgi
 
-    FCGI_SOCKET_PATH / socket_path
-        The address (TCP/IP) or path (UNIX Domain) of the socket the
-        external FastCGI script to which bind an listen for incoming
-        connections from the web server.
+FastCGI scripts must end in the extension .fcgi.  For each script you
+install, you must add something like the following to srm.conf:
 
-    FCGI_LISTEN_QUEUE / listen_queue
-        Maximum length of the queue of pending connections, defaults to 100.
+    FastCgiServer /usr/etc/httpd/fcgi-bin/file_upload.fcgi -processes 2
 
-    For example:
+This instructs Apache to launch two copies of file\_upload.fcgi at
+startup time.
 
-        use CGI::Fast
-            socket_path  => "sputnik:8888",
-            listen_queue => "50"
-        ;
+# USING FASTCGI SCRIPTS AS CGI SCRIPTS
 
-        do_some_initialization();
+Any script that works correctly as a FastCGI script will also work
+correctly when installed as a vanilla CGI script.  However it will
+not see any performance benefit.
 
-        while ($q = new CGI::Fast) {
-            process_request($q);
-        }
+# EXTERNAL FASTCGI SERVER INVOCATION
 
-    Or:
+FastCGI supports a TCP/IP transport mechanism which allows FastCGI scripts to run
+external to the webserver, perhaps on a remote machine.  To configure the
+webserver to connect to an external FastCGI server, you would add the following
+to your srm.conf:
 
-        use CGI::Fast;
+    FastCgiExternalServer /usr/etc/httpd/fcgi-bin/file_upload.fcgi -host sputnik:8888
 
-        do_some_initialization();
+Two environment variables affect how the `CGI::Fast` object is created,
+allowing `CGI::Fast` to be used as an external FastCGI server. (See `FCGI`
+documentation for `FCGI::OpenSocket` for more information.)
 
-        $ENV{FCGI_SOCKET_PATH} = "sputnik:8888";
-        $ENV{FCGI_LISTEN_QUEUE} = 50;
+You can set these as ENV variables or imports in the use CGI::Fast statement.
+If the ENV variables are set then these will be favoured so you can override
+the import statements on the command line, etc.
 
-        while ($q = new CGI::Fast) {
-            process_request($q);
-        }
+- FCGI\_SOCKET\_PATH / socket\_path
 
-CAVEATS
-    I haven't tested this very much.
+    The address (TCP/IP) or path (UNIX Domain) of the socket the external FastCGI
+    script to which bind an listen for incoming connections from the web server.
 
-AUTHOR INFORMATION
-    Copyright 1996-1998, Lincoln D. Stein. All rights reserved. Currently
-    maintained by Lee Johnson
+- FCGI\_LISTEN\_QUEUE / listen\_queue
 
-    This library is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself.
+    Maximum length of the queue of pending connections, defaults to 100.
 
-    Address bug reports and comments to:
+For example:
 
-        https://github.com/leejo/cgi-fast
+    use CGI::Fast
+        socket_path  => "sputnik:8888",
+        listen_queue => "50"
+    ;
 
-BUGS
-    This section intentionally left blank.
+    do_some_initialization();
 
-SEE ALSO
-    CGI::Carp, CGI
+    while ($q = new CGI::Fast) {
+        process_request($q);
+    }
 
+Or:
+
+    use CGI::Fast;
+
+    do_some_initialization();
+
+    $ENV{FCGI_SOCKET_PATH} = "sputnik:8888";
+    $ENV{FCGI_LISTEN_QUEUE} = 50;
+
+    while ($q = new CGI::Fast) {
+        process_request($q);
+    }
+
+# FILE HANDLES
+
+FCGI defaults to using STDIN, STDOUT, and STDERR as its filehandles - this
+may lead to unexpected redirect of output if you migrate scripts from CGI.pm
+to CGI::Fast. To get around this you can use the file\_handles method, which
+you must do **before** the first call to CGI::Fast->new. For example using
+IO::Handle:
+
+    CGI::Fast->file_handles({
+        fcgi_input_file_handle  => IO::Handle->new,
+        fcgi_output_file_handle => IO::Handle->new,
+        fcgi_error_file_handle  => IO::Handle->new,
+    });
+
+    while (new CGI::Fast) {
+        ..
+    }
+
+# CAVEATS
+
+I haven't tested this very much.
+
+# LICENSE
+
+Copyright 1996-1998, Lincoln D. Stein.  All rights reserved. Currently
+maintained by Lee Johnson
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+Address bug reports and comments to:
+
+    https://github.com/leejo/cgi-fast
+
+# BUGS
+
+This section intentionally left blank.
+
+# SEE ALSO
+
+[CGI::Carp](https://metacpan.org/pod/CGI::Carp), [CGI](https://metacpan.org/pod/CGI)
