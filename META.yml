@@ -7,7 +7,7 @@ build_requires:
   Test::More: '0'
 configure_requires: {}
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.140640'
+generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.142060'
 license: unknown
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -31,4 +31,4 @@ resources:
   homepage: https://metacpan.org/module/CGI::Fast
   license: http://dev.perl.org/licenses/
   repository: https://github.com/leejo/cgi-fast
-version: '2.04'
+version: '2.05'

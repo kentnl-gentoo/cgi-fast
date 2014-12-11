@@ -13,7 +13,7 @@ local $^W = 1;
 # wish, but if you redistribute a modified version, please attach a note
 # listing the modifications you have made.
 
-$CGI::Fast::VERSION='2.04';
+$CGI::Fast::VERSION='2.05';
 
 use CGI;
 use FCGI;
@@ -107,6 +107,10 @@ sub _create_fcgi_request {
 =head1 NAME
 
 CGI::Fast - CGI Interface for Fast CGI
+
+=for html
+<a href='https://travis-ci.org/leejo/cgi-fast?branch=master'><img src='https://travis-ci.org/leejo/cgi-fast.svg?branch=master' alt='Build Status' /></a>
+<a href='https://coveralls.io/r/leejo/cgi-fast?branch=master'><img src='https://coveralls.io/repos/leejo/cgi-fast/badge.png?branch=master' alt='Coverage Status' /></a>
 
 =head1 SYNOPSIS
 
