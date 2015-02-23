@@ -2,12 +2,10 @@
 abstract: unknown
 author:
   - unknown
-build_requires:
-  Test::Deep: '0.11'
-  Test::More: '0'
+build_requires: {}
 configure_requires: {}
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.142060'
+generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.141520'
 license: unknown
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -20,10 +18,8 @@ no_index:
     - t
 requires:
   CGI: '4'
+  Carp: '0'
   FCGI: '0.67'
-  File::Spec: '0.82'
-  Test::Deep: '0.11'
-  Test::More: '0.98'
   if: '0'
   perl: '5.008001'
 resources:
@@ -31,4 +27,4 @@ resources:
   homepage: https://metacpan.org/module/CGI::Fast
   license: http://dev.perl.org/licenses/
   repository: https://github.com/leejo/cgi-fast
-version: '2.05'
+version: '2.06'
