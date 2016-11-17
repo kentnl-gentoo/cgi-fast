@@ -4,7 +4,7 @@
       "unknown"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 7.0401, CPAN::Meta::Converter version 2.150001",
+   "generated_by" : "ExtUtils::MakeMaker version 7.1, CPAN::Meta::Converter version 2.143240",
    "license" : [
       "perl_5"
    ],
@@ -50,5 +50,5 @@
          "url" : "https://github.com/leejo/cgi-fast"
       }
    },
-   "version" : "2.10"
+   "version" : "2.11"
 }
